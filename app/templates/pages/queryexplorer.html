@@ -1,0 +1,357 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+    {% block content %}
+    {% if not response %}
+        {% set response = {} %}
+    {% endif %}
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+          <h1>
+            Query Explorer
+          </h1>
+            <p></p>
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+            <div id="page-wrapper">
+                <div class="row">
+                    <div class="col-lg-6 col-md-6">
+                        <div class="box box-primary">
+                            <div class="box-body">
+                                <form action="queryexplorer" method="post" id="filter">
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                          <div class="input-group-addon">
+                                            <i class="fa fa-terminal"></i>
+                                          </div>
+                                          <input id="form-field" type="text" class="form-control" name="query" autocomplete="off" placeholder="SELECT * FROM panw.traffic LIMIT 100">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <button type="button" class="btn btn-default" id="daterange-btn">
+                                            <span>
+                                                <i class="fa fa-calendar"></i> DateTime Range Filter
+                                            </span>
+                                            <i class="fa fa-caret-down"></i>
+                                            <input type="hidden" name="to" id="to" value="{{ ed }}">
+                                            <input type="hidden" name="from" id="from" value="{{ sd }}">
+                                        </button>
+                                    </div>
+                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" id="submitButton">
+                                        Search
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="box box-primary">
+                            <div class="box-body">
+                                <label> Sample Query Library</label>
+                                <select id="select-form" class="form-control select2" style="width: 100%;">
+                                    <option value=""></option>
+                                    <option value="SELECT * FROM panw.threat LIMIT 500">THREAT | Last 500 Threat Events</option>
+                                    <option value="SELECT * FROM panw.threat WHERE severity = '5'">THREAT | Critical Severity</option>
+                                    <option value="SELECT * FROM panw.threat WHERE subtype = '1'">THREAT | URL Filtering</option>
+                                    <option value="SELECT  SUM(sessions) AS 'sortby',  _threatid AS '1227' FROM panw.thsum  GROUP BY  _threatid AS 'name-of-threatid' WITH MISSING AS 'default' AND LIMIT 12, _severity AS 'severity-of-threatid' WITH MISSING AS 'default' AND LIMIT 12, _subtype AS 'threat-type' WITH MISSING AS 'default' AND LIMIT 12, _category-of-threatid AS 'category-of-threatid' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY  SUM(sessions) AS 'sortby' DESC  LIMIT 0">THSUM | Threat Activity</option>
+                                    <option value="SELECT * FROM panw.traffic LIMIT 500">TRAFFIC | Last 500 Traffic Events</option>
+                                    <option value="SELECT * FROM panw.traffic WHERE subcategory-of-app = 'social-networking'">TRAFFIC | Social Networking Applications</option>
+                                    <option value="SELECT * FROM panw.traffic WHERE technology-of-app = 'browser-based'">TRAFFIC | Browser-based Applications</option>
+                                    <option value="SELECT * FROM panw.trsum WHERE risk-of-app >= '4' ORDER BY bytes desc">TRSUM | High Risk Applications ORDER BY bytes DESC</option>
+                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(nthreats) AS 'nthreats',  SUM(sessions) AS 'sessions',  _risk-of-app AS '561' FROM panw.trsum GROUP BY  _risk-of-app AS 'risk-of-app' WITH MISSING AS 'default' AND LIMIT 52, _app AS 'app' WITH MISSING AS 'default' AND LIMIT 52 ORDER BY SUM(sessions) AS 'sortby'  DESC  LIMIT 0">TRSUM | Top High-Risk Applications</option>
+                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(sessions) AS 'sessions',  SUM(nthreats) AS 'nthreats', SUM(ncontent) AS 'ncontent', SUM(nurlcount) AS 'nurlcount', PAN_CARDINALITY(app,128) AS 'nunique-of-apps', _rule AS '892' FROM panw.trsum GROUP BY _rule AS 'rule' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(bytes) AS 'sortby' DESC LIMIT 0">TRSUM | Rule Usage</option>
+                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(sessions) AS 'sessions',  SUM(nthreats) AS 'nthreats',  SUM(ncontent) AS 'ncontent',  SUM(nurlcount) AS 'nurlcount',  PAN_CARDINALITY(app,64) AS 'nunique-of-apps',  _srcuser AS '46' FROM panw.trsum  GROUP BY  _srcuser AS 'srcuser' WITH MISSING AS 'default' AND LIMIT 12, _dstuser AS 'dstuser' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(bytes) AS 'sortby'  DESC  LIMIT 0">TRSUM | User Activity</option>
+                                    <option value="SELECT  SUM(bytes) AS 'bytes',  _dstloc AS '71' FROM panw.trsum  GROUP BY  _dstloc AS 'dstloc' WITH MISSING AS 'default' AND LIMIT 502 ORDER BY SUM(bytes) AS 'sortby'  DESC  LIMIT 0">TRSUM | Destination Regions</option>
+                                    <option value="SELECT CARDINALITY(app) FROM panw.trsum">TRSUM | Unique Applications</option>
+                                    <option value="SELECT AVG(bytes) FROM panw.trsum">TRSUM | Average Bytes</option>
+                                    <option value="SELECT * FROM panw.trsum GROUP BY src">TRSUM | Group by Source IP</option>
+                                    <option value="SELECT  SUM(repeatcnt) AS 'repeatcnt',  _category AS '1445' FROM panw.urlsum  GROUP BY  _category AS 'category' WITH MISSING AS 'default' AND LIMIT 12, _url_domain AS 'url_domain' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(repeatcnt) AS 'sortby'  DESC  LIMIT 0">URLSUM | Top URLs by Session</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="box box-primary">
+                            <div class="box-header">
+                                <h3 class="box-title">
+                                    <small>
+                                        Displaying logs from <strong>{{ sd }}</strong> to <strong>{{ ed }}</strong>
+                                         | returned {{ response|length }} chunks in {{ et }} seconds
+                                    </small>
+                                </h3>
+                            </div>
+                            <div class="box-body" id="box_body">
+                                <div class="col-lg-12" id="body_div">
+                                    {% if response %}
+                                    <div class="nav-tabs-custom">
+                                        <ul class="nav nav-tabs">
+                                            <li class="active"><a href="#tabular" data-toggle="tab">Table</a></li>
+                                            <li><a href="#json" data-toggle="tab">JSON</a></li>
+                                        </ul>
+                                        <div class="tab-content">
+                                            <div class="tab-pane active" id="tabular">
+                                                {% if tabular %}
+                                                <div class="table-responsive">
+                                                    <table class="table table-striped table-bordered table-hover" id="results">
+                                                        <thead>
+                                                    {% if response|length > 0 %}
+                                                        {% for chunk in response %}
+                                                            {% if chunk.result.esResult.hits %}
+                                                                <tr>
+                                                                {% for header in headers %}
+                                                                    <td>{{ header }}</td>
+                                                                {% endfor %}
+                                                                </tr>
+                                                            {% elif chunk.result.esResult.response %}
+                                                                <tr>
+                                                                {% for header in headers %}
+                                                                    <td>{{ header }}</td>
+                                                                {% endfor %}
+                                                                </tr>
+                                                            {% else %}
+                                                                <tr><td></td></tr>
+                                                            {% endif %}
+                                                        </thead>
+                                                        <tbody>
+                                                            {% if chunk.result.esResult.hits %}
+
+                                                                {% for log in chunk.result.esResult.hits.hits %}
+                                                                <tr>
+                                                                    {% for header in headers %}
+                                                                        {% if log['_source'][header] %}
+                                                                        <td>{{ log['_source'][header] }}</td>
+                                                                        {% else %}
+                                                                        <td></td>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </tr>
+                                                                {% endfor %}
+
+                                                            {% elif chunk.result.esResult.response %}
+                                                                {% if chunk.result.esResult.response.result.hits.hits %}
+                                                                    {% for log in chunk.result.esResult.response.result.hits.hits %}
+                                                                    <tr>
+                                                                        {% for header in headers %}
+                                                                            {% if log['_source'][header] %}
+                                                                            <td>{{ log['_source'][header] }}</td>
+                                                                            {% else %}
+                                                                            <td></td>
+                                                                            {% endif %}
+                                                                        {% endfor %}
+                                                                    </tr>
+                                                                    {% endfor %}
+                                                                {% else %}
+                                                                    {% for k, v in chunk.result.esResult.response.result.aggregations.items() %}
+                                                                        {% for bucket in v.buckets %}
+
+                                                                            <!-- Top Applications -->
+                                                                            {% if bucket.app %}
+                                                                                {% for app in bucket.app.buckets %}
+                                                                                <tr>
+                                                                                    {% for header in headers %}
+                                                                                        {% if app[header] %}
+                                                                                            {% if app[header].value %}
+                                                                                                <td>{{ app[header].value }}</td>
+                                                                                            {% else %}
+                                                                                                <td>{{ app[header] }}</td>
+                                                                                            {% endif %}
+                                                                                        {% else %}
+                                                                                        <td></td>
+                                                                                        {% endif %}
+                                                                                    {% endfor %}
+                                                                                </tr>
+                                                                                {% endfor %}
+
+                                                                            {% elif bucket.app %}
+                                                                                {% for app in bucket.app.buckets %}
+                                                                                <tr>
+                                                                                    {% for header in headers %}
+                                                                                        {% if app[header] %}
+                                                                                            {% if app[header].value %}
+                                                                                                <td>{{ app[header].value }}</td>
+                                                                                            {% else %}
+                                                                                                <td>{{ app[header] }}</td>
+                                                                                            {% endif %}
+                                                                                        {% else %}
+                                                                                        <td></td>
+                                                                                        {% endif %}
+                                                                                    {% endfor %}
+                                                                                </tr>
+                                                                                {% endfor %}
+
+                                                                            <!-- Rule Usage -->
+                                                                            {% else %}
+                                                                                <tr>
+                                                                                    {% for header in headers %}
+                                                                                        {% if bucket[header] %}
+                                                                                            {% if bucket[header].value %}
+                                                                                                <td>{{ bucket[header].value }}</td>
+                                                                                            {% else %}
+                                                                                                <td>{{ bucket[header] }}</td>
+                                                                                            {% endif %}
+                                                                                        {% else %}
+                                                                                        <td></td>
+                                                                                        {% endif %}
+                                                                                    {% endfor %}
+                                                                                </tr>
+                                                                            {% endif %}
+                                                                         {% endfor %}
+                                                                    {% endfor %}
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                {% elif response|length > 0 %}
+                                                <pre id="raw1"></pre>
+                                                {% else %}
+                                                <div></div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="tab-pane" id="json">
+                                                <meta id="json-data" data-object="{{ json }}">
+                                                <pre id="prettyjson"></pre>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <div></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="overlay" id="spinner" style="display:none;">
+                                <i class="fa fa-refresh fa-spin" style="color:#006D91"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endblock %}
+{% block pagescript %}
+    <script src="/dist/datatables/datatables.min.js"></script>
+    <script src="/adminlte_components/plugins/daterangepicker/daterangepicker.js"></script>
+    <script src="/adminlte_components/plugins/daterangepicker/moment.js"></script>
+    <script src="/adminlte_components/plugins/select2/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            //Date range as a button
+            $('#daterange-btn').daterangepicker(
+                {
+                  timePicker: true,
+                  timePickerIncrement: 1,
+                  ranges: {
+                    'Last Minute': [moment.utc().subtract(1, 'minutes'), moment.utc()],
+                    'Last 5 Minutes': [moment.utc().subtract(5, 'minutes'), moment.utc()],
+                    'Last 15 Minutes': [moment.utc().subtract(15, 'minutes'), moment.utc()],
+                    'Last Hour': [moment.utc().subtract(1, 'hours'), moment.utc()],
+                    'Last 6 Hours': [moment.utc().subtract(6, 'hours'), moment.utc()],
+                    'Last 12 Hours': [moment.utc().subtract(12, 'hours'), moment.utc()],
+                    'Last 24 Hours': [moment.utc().subtract(24, 'hours'), moment.utc()],
+                    'Last 7 Days': [moment.utc().subtract(6, 'days'), moment.utc()],
+                    'Last 30 Days': [moment.utc().subtract(29, 'days'), moment.utc()],
+                  },
+                  opens: "right",
+                  "cancelClass": "btn-danger",
+                },
+                function (start, end) {
+                  $('#daterange-btn span').html(start.format('X') + ' - ' + end.format('X'));
+                  $('#to').val(end.format('X'));
+                  $('#from').val(start.format('X'));
+                }
+            );
+        });
+    </script>
+    <script>
+    $(document).ready(function() {
+        $('#results').DataTable(
+        {
+            "dom": "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-md-6'><'col-md-6'p>><'row'<'col-md-12't>><'row'<'col-md-12'i>>r",
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+            "processing": true,
+            "language": {
+                "processing": '<i class="fa fa-refresh fa-spin fa-3x"></i>'
+            }
+        });
+    });
+    </script>
+    <script>
+        try {
+            document.getElementById("raw1").innerHTML = JSON.stringify("{{ response }}", undefined, 2);
+        }
+        catch(err) {
+        }
+    </script>
+    <script>
+        try {
+            document.getElementById("raw2").innerHTML = JSON.stringify("{{ response }}", undefined, 2);
+        }
+        catch(err) {
+        }
+    </script>
+    <script>
+        try {
+            var obj = $('#json-data').data('object');
+            document.getElementById("prettyjson").innerHTML = JSON.stringify(obj, undefined, 2);
+        }
+        catch(err) {
+            document.getElementById("prettyjson").innerHTML = err;
+        }
+    </script>
+    <script>
+        $(document).ready(function(){
+            $('#select-form').on('change',function(){
+                 if($(this).val() != "default"){
+                    $('.form-control').val($(this).val());
+                }else{
+                    $('.form-control').val('');
+                }
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $(".select2").select2();
+        });
+    </script>
+    <script type="text/javascript">
+        $(window).on('load',function(){
+            $('#activation').modal('show');
+        });
+    </script>
+    <script>
+        $("#submitButton").click(function() {
+          var data = {};
+          data.Text = $("#form-field").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("form-field", JSON.stringify(data));
+        });
+
+
+        //On load
+        var data = localStorage.getItem("form-field");
+        var dataObject;
+
+        if (data != null) //There's stored data
+        {
+          dataObject = JSON.parse(data);
+          $("#form-field").val(dataObject.Text)
+
+          localStorage.removeItem("form-field"); //Remove data, otherwise it'll be there for a long time.
+        }
+    </script>
+
+{% endblock %}

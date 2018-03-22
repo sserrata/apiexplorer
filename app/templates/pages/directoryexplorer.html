@@ -1,0 +1,126 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+    {% block content %}
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+          <h1>
+            Directory-Sync Service Explorer
+          </h1>
+            <p></p>
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+            <div id="page-wrapper">
+                <div class="row">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="box box-primary">
+                            <div class="box-body">
+                                <form action="directoryexplorer" method="post" id="search">
+                                    <div class="form-group">
+                                        <label for="object">Object Class</label>
+                                        <select class="form-control select2" style="width: 100%;" name="object" id="object">
+                                          <option value="users" selected="selected">User</option>
+                                          <option value="computers">Computer</option>
+                                          <option value="groups">Group</option>
+                                          <option value="ous">OU</option>
+                                          <option value="containers">Container</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                          <label>Domain <small><em>(optional)</em></small></label>
+                                          <input type="text" class="form-control" name="domain" autocomplete="off" value="ad2.daniel.com">
+                                        </div>
+                                    </div>
+                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="attributes">
+                                        Attributes
+                                    </button>
+                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-info" type="submit" name="endpoint" value="count">
+                                        Count
+                                    </button>
+                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-warning" type="submit" name="endpoint" value="domains">
+                                        Domains
+                                    </button>
+                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-success" type="submit" name="endpoint" value="query">
+                                        Query
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="box box-primary">
+                            <div class="box-header">
+                                <h3 class="box-title">
+                                    <small>
+                                        Displaying results
+                                    </small>
+                                </h3>
+                            </div>
+                            <div class="box-body">
+                                <div class="col-lg-12" id="body_div">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered table-hover" id="results">
+                                        <thead></thead>
+                                        <tbody>
+                                            <div class="tab-pane" id="json">
+                                                <meta id="json-data" data-object="{{ results }}">
+                                                <pre id="prettyjson"></pre>
+                                            </div>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="overlay" id="spinner" style="display:none;">
+                                <i class="fa fa-refresh fa-spin" style="color:#006D91"></i>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endblock %}
+{% block pagescript %}
+    <script src="/dist/datatables/datatables.min.js"></script>
+    <script src="/adminlte_components/plugins/select2/select2.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('#results').DataTable(
+        {
+            "dom": "<'row'<'col-md-6'l><'col-md-6'f>><'row'<'col-md-6'><'col-md-6'p>><'row'<'col-md-12't>><'row'<'col-md-12'i>>",
+            "paging": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true,
+            "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ]
+        }
+        );
+    });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $(".select2").select2();
+        });
+    </script>
+    <script type="text/javascript">
+        $(window).on('load',function(){
+            $('#activation').modal('show');
+        });
+    </script>
+    <script>
+        try {
+            var obj = $('#json-data').data('object');
+            document.getElementById("prettyjson").innerHTML = JSON.stringify(obj, undefined, 2);
+        }
+        catch(err) {
+            document.getElementById("prettyjson").innerHTML = err;
+        }
+    </script>
+{% endblock %}

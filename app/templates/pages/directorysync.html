@@ -1,0 +1,57 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+    {% block content %}
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+          <h1>
+            DS Query Tutorial
+          </h1>
+            <p></p>
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+            <div id="page-wrapper">
+                <div class="row">
+                    <div class="col-lg-8 col-md-6">
+                        <div class="box box-primary">
+                            <div class="box-body">
+                                <blockquote>
+                                    <p>Begin by importing the DirectoryService class from the directory module.</p>
+                                </blockquote>
+<pre class="prettyprint">from pancloud.directory import DirectoryService</pre>
+                                <blockquote>
+                                    <p>Next, define a DirectoryService instance and point it to a Directory-Sync Service API.</p>
+                                </blockquote>
+<pre class="prettyprint">url = 'https://app-stg1.directorysync.paloaltonetworks.com'
+ds = DirectoryService(
+    url,
+    cert='ssl/ds.client.pem',
+    verify=False
+)
+</pre>
+                                <blockquote>
+                                    <p>Prepare the query data payload.</p>
+                                </blockquote>
+
+<pre class="prettyprint">data = {
+    "tenantId": "5748120208644591984",
+    "domain": "ad.daniel.com"
+}
+</pre>
+                                <blockquote>
+                                    <p>Generate a new query.</p>
+                                </blockquote>
+<pre class="prettyprint">q = ds.cache(data, object="user")</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endblock %}
+{% block pagescript %}
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?lang=python&amp;skin=desert"></script>
+{% endblock %}

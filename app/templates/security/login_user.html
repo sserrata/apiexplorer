@@ -1,0 +1,54 @@
+{% extends "secbase.html" %}
+{% block title %}Login - APOLLO 1{% endblock %}
+
+{% block body %}
+<div class="container-fluid">
+    <body class="hold-transition login-page">
+        <div class="login-box">
+          <div class="login-logo">
+            <div class="row">
+                <b>APOLLO 1 </b><i class="fa fa-cloud"></i>
+            </div>
+            <div class="row"><h5>Logging | Event | Directory-Sync</h5></div>
+          </div>
+          <div class="login-box-body">
+              <p class="login-box-msg">
+                  <small>
+                    By logging in you accept the Palo Alto Networks
+                    <a class="badge bg-gray" target="_blank" href="https://www.paloaltonetworks.com/content/dam/pan/en_US/assets/pdf/legal/palo-alto-networks-end-user-license-agreement-eula.pdf">EULA</a>
+                  </small>
+              </p>
+              {% from "security/_macros.html" import render_field_with_errors, render_field %}
+              {% include "security/_messages.html" %}
+              <form action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
+                {{ login_user_form.hidden_tag() }}
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                    {{ render_field_with_errors(login_user_form.email, class="form-control focusedInput", placeholder="Username") }}
+                </div>
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                    {{ render_field_with_errors(login_user_form.password, class="form-control focusedInput", placeholder="Password") }}
+                </div>
+                {{ render_field(login_user_form.next) }}
+                {{ render_field(login_user_form.submit, class="btn btn-success btn-block")}}
+              </form>
+              {% if security.registerable %}
+                <a type="button" class="btn btn-warning btn-block" href="{{ url_for_security('register') }}{% if 'next' in request.args %}?next={{ request.args.next|urlencode }}{% endif %}">Register</a>
+              {% endif %}
+          </div>
+        </div>
+    </body>
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script>
+    $( document ).ready(function() {
+        $('[data-toggle="tooltip"]').tooltip({
+            'placement': 'right'
+        });
+    });
+    </script>
+</div>
+{% endblock %}
+
+

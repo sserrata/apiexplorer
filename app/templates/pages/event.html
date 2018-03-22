@@ -1,0 +1,59 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+    {% block content %}
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <section class="content-header">
+          <h1>
+            Query Tutorial
+          </h1>
+            <p></p>
+        </section>
+
+        <!-- Main content -->
+        <section class="content">
+            <div id="page-wrapper">
+                <div class="row">
+                    <div class="col-lg-8 col-md-6">
+                        <div class="box box-primary">
+                            <div class="box-body">
+                                <blockquote>
+                                    <p>Begin by importing the LoggingService class from the logging module.</p>
+                                </blockquote>
+<pre class="prettyprint">from pancloud.logging import LoggingService</pre>
+                                <blockquote>
+                                    <p>Next, define a LoggingService instance and point it to a production Logging Service API.</p>
+                                </blockquote>
+<pre class="prettyprint">url = 'https://api.lc.prod.us.cs.paloaltonetworks.com'
+ls = LoggingService(
+    url,
+    cert='ssl/lcaas_certificate.pem',
+    verify=False
+)
+</pre>
+                                <blockquote>
+                                    <p>Prepare the query data payload.</p>
+                                </blockquote>
+
+<pre class="prettyprint">data = {
+    "q": "select * from panw.traffic limit 1",  # limit to 1 log
+    "startTime": 0,  # unix epoch in UTC
+    "endTime": 1516313189,  # unix epoch in UTC
+    "maxWaitTime": 1000  # set to > 0 to receive logs in initial query response
+}
+</pre>
+                                <blockquote>
+                                    <p>Generate a new query.</p>
+                                </blockquote>
+<pre class="prettyprint">q = ls.query(data)</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endblock %}
+{% block pagescript %}
+    <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js?lang=python&amp;skin=desert"></script>
+{% endblock %}

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Palo Alto Networks - APOLLO 1</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="/adminlte_24/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/adminlte_24/bower_components/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/adminlte_24/bower_components/Ionicons/css/ionicons.min.css">
+    <link rel="stylesheet" href="/adminlte_components/plugins/select2/select2.min.css">
+    <link rel="stylesheet" href="/dist/css/AdminLTE.css">
+    <link rel="stylesheet" href="/dist/css/skins/skin-blue-flat.css">
+    <link href="/adminlte_24/plugins/daterangepicker/daterangepicker-bs3.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.16/b-1.5.1/b-colvis-1.5.1/b-html5-1.5.1/b-print-1.5.1/r-2.2.1/sc-1.4.4/datatables.min.css"/>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if gt IE 9]>
+    <div style="background: #000; text-align: center; position: absolute; top: 0px; width: 100%; color: #FFF;">
+      This website may not be compatible with your outdated Internet Explorer version. <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie" target="_blank" style="color: #fff; text-decoration: underline;">Please upgrade here.</a>
+    </div>
+    <![endif]-->
+
+    <!-- Google Font -->
+    <link rel="stylesheet" href="/adminlte_24/dist/css/google-fonts.css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+  </head>
+  <body class="hold-transition skin-blue-flat fixed sidebar-mini sidebar-collapse">
+    <div class="wrapper">
+
+      <header class="main-header">
+        <!-- Logo -->
+        <a href="/index.html" class="logo">
+          <span class="logo-mini"><i class="fa fa-cloud fa-lg"></i></span>
+          <span class="logo-lg"><b>APOLLO</b> 1 <i class="fa fa-cloud fa-lg"></i></span>
+        </a>
+        <nav class="navbar navbar-static-top">
+          <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+
+          <div class="navbar-custom-menu">
+            <ul class="nav navbar-nav">
+                <li class="dropdown" data-toggle="tooltip" data-placement="bottom" title="Authorization">
+                    <a class="dropdown-toggle" href="authorization">
+                        <i class="fa fa-key fa-lg"></i>
+                    </a>
+                </li>
+                <li class="dropdown" data-toggle="tooltip" data-placement="bottom" title="Logout">
+                    <a class="dropdown-toggle" href="logout">
+                        {{ current_user.email }} <i class="fa fa-sign-out fa-lg"></i>
+                    </a>
+                </li>
+            </ul>
+          </div>
+        </nav>
+      </header>
+      <aside class="main-sidebar">
+        <section class="sidebar">
+          <ul class="sidebar-menu" data-widget="tree">
+            <li class="header">NAVIGATION</li>
+            <li>
+              <a href="index.html"><i class="fa fa-home"></i> <span>Home</span></a>
+            </li>
+            <li class="treeview">
+              <a href="#"><i class="fa fa-database"></i> <span>Logging</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                  <li>
+                      <a href="queryexplorer"><i class="fa fa-circle-o"></i> Query Explorer</a>
+                  </li>
+              </ul>
+            </li>
+            <li class="treeview">
+              <a href="#">
+                <i class="fa fa-comments"></i> <span>Event</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                  <li>
+                      <a href="/eventexplorer"><i class="fa fa-circle-o"></i> Event Explorer</a>
+                  </li>
+              </ul>
+            </li>
+            <li class="treeview">
+              <a href="#">
+                <i class="fa fa-users"></i> <span>Directory</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                  <li>
+                      <a href="directoryexplorer"><i class="fa fa-circle-o"></i> Directory Explorer</a>
+                  </li>
+              </ul>
+            </li>
+            <li class="treeview">
+              <a href="#"><i class="fa fa-book"></i> <span>PAN Cloud SDK</span>
+                <span class="pull-right-container">
+                  <i class="fa fa-angle-left pull-right"></i>
+                </span>
+              </a>
+              <ul class="treeview-menu">
+                  <li>
+                      <a href="logging"><i class="fa fa-circle-o"></i> Logging Service</a>
+                  </li>
+                  <li>
+                      <a href="directorysync"><i class="fa fa-circle-o"></i> Directory-Sync Service</a>
+                  </li>
+                  <li>
+                      <a href="event"><i class="fa fa-circle-o"></i> Event Service</a>
+                  </li>
+              </ul>
+            </li>
+          </ul>
+        </section>
+      </aside>
+
+      {% block content %}{% endblock %}
+      <footer class="main-footer">
+          <strong>2018 | Palo Alto Networks | </strong><small><span id="date"></span></small>
+      </footer>
+    </div>
+    {% if activated == False %}
+        <div class="col-lg-12">
+            <div class="modal modal-default fade" id="activation">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                      <h4 class="modal-title" style="text-align: center;"><strong>ACTIVATION REQUIRED</strong></h4>
+                  </div>
+                  <div class="modal-body">
+                    <p>
+                        <strong>NOTICE:</strong> <em>Some components of the Reference Application
+                        will have limited functionality until the activation steps are completed.</em>
+                    </p>
+                    <hr>
+                    <p>Activation Steps:</p>
+                    <ol>
+                        <li>Click <a class="btn btn-success btn-xs" href="authorization" role="button">Activate</a> button.</li>
+                        <li>Click the <a class="btn btn-primary btn-xs" href="#" role="button"><i class="fa fa-magic"></i> Authorize</a> button and provide the following to begin authorization:
+                            <ul>
+                                <li>Client ID</li>
+                                <li>Client Secret</li>
+                                <li>Redirect URI</li>
+                                <li>Scope</li>
+                                <li>3P Tenant ID</li>
+                            </ul>
+                        </li>
+                        <li>When prompted, authenticate using your CSP credentials.</li>
+                        <li>Complete and submit the "Request for Approval" form.</li>
+                    </ol>
+                    <p><em>Note: If successful, your Reference Application will receive tokens necessary for interacting with
+                        your Logging, Event and Directory-Sync instances.</em></p>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-primary pull-left" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-success" href="authorization" role="button">Activate</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+    {% endif %}
+    <script src="/adminlte_24/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/adminlte_24/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/adminlte_24/bower_components/jquery-slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="/adminlte_24/dist/js/adminlte.min.js"></script>
+    <script src="/adminlte_24/dist/js/moment.min.js"></script>
+    <script>
+        var now = moment().format("dddd, MMMM Do, YYYY, h:mm:ss A");
+        $('#date').append(now);
+    </script>
+    <script>
+        $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
+    <script>
+      var AdminLTEOptions = {
+        animationSpeed: 200,
+        sidebarPushMenu: true,
+        colors: {
+          lightBlue: "#3c8dbc",
+          red: "#ba6a5d",
+          green: "#00a65a",
+          aqua: "#7FD0DD",
+          yellow: "#FFBC1A",
+          blue: "#006D91",
+          navy: "#001F3F",
+          teal: "#39CCCC",
+          olive: "#3D9970",
+          lime: "#01FF70",
+          orange: "#FF851B",
+          fuchsia: "#F012BE",
+          purple: "#8E24AA",
+          maroon: "#D81B60",
+          black: "#222222",
+          gray: "#d2d6de"
+        }
+      }
+    </script>
+    {% block pagescript %}{% endblock %}
+  </body>
+</html>

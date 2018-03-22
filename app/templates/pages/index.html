@@ -1,0 +1,39 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+
+    <div class="content-wrapper">
+        <article>
+            <header class="content-header container-fluid">
+                <div class="col-lg-8">
+                    <div class="row">
+                        <h2>Welcome to the Reference Application!</h2>
+                    </div>
+                </div>
+            </header>
+            <div class="content container-fluid">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <p>
+                        Here you'll find tutorials and working examples
+                        illustrating how to leverage the PAN Cloud Python SDK
+                        to interact with the Logging, Directory, and Event
+                        Service APIs.
+                        </p>
+                    </div>
+                </div>
+                <img src="/img/layer-cake-black-1.png" alt="Application Framework">
+            </div>
+        </article>
+    </div>
+
+{% endblock %}
+
+{% block pagescript %}
+    <script type="text/javascript">
+        $(window).on('load',function(){
+            $('#activation').modal('show');
+        });
+    </script>
+{% endblock %}

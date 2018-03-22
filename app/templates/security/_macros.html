@@ -1,0 +1,18 @@
+{% macro render_field_with_errors(field) %}
+
+  {% if field.errors %}
+    <div class="form-group has-error has-feedback">
+      {{ field(**kwargs)|safe }}
+    </div>
+    <span data-toggle="tooltip" title="{{ field.errors|join(', ') }}" class="input-group-addon"><i class="glyphicon glyphicon-alert"></i></span>
+  {% else %}
+    <div class="form-group">
+      {{ field(**kwargs)|safe }}
+    </div>
+    <span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+  {% endif %}
+{% endmacro %}
+
+{% macro render_field(field) %}
+  <p>{{ field(**kwargs)|safe }}</p>
+{% endmacro %}

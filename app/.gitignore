@@ -1,0 +1,7 @@
+*.pyc
+*.xlsx
+.idea/
+var/log/*
+var/db/*
+tmp/*
+config.rc
