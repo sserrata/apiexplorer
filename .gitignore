@@ -102,3 +102,5 @@ ENV/
 
 # user-defined
 .DS_Store
+app.json
+security.db
