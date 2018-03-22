@@ -28,4 +28,19 @@ def send_img(path):
 def send_bootstrap(path):
     return send_from_directory(os.path.join(app.root_path, 'vendor/bower_components'), path)
 
+
+@app.route('/css/<path:path>')
+def css(path):
+    return send_from_directory(os.path.join(app.root_path, 'vendor/css'), path)
+
+
+@app.route('/js/<path:path>')
+def js(path):
+    return send_from_directory(os.path.join(app.root_path, 'vendor/js'), path)
+
+
+@app.route('/fonts/<path:path>')
+def fonts(path):
+    return send_from_directory(os.path.join(app.root_path, 'vendor/css/fonts'), path)
+
 from app import views

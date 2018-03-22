@@ -45,7 +45,7 @@
                         <i class="fa fa-magic fa-lg"></i> Authorize
                     </button>
                     <a class="btn btn-success disabled" href="/refresh_tokens">
-                        <i class="ion-refresh"></i>
+                        <i class="fa fa-refresh"></i>
                     </a>
                     <a class="btn btn-danger disabled" href="/delete_tokens">
                         <i class="fa fa-trash fa-lg"></i>
@@ -55,7 +55,7 @@
                         <i class="fa fa-magic fa-lg"></i> Authorize
                     </button>
                     <a class="btn btn-success" href="/refresh_tokens" data-toggle="tooltip" data-placement="bottom" title="Refresh Tokens">
-                        <i class="ion-refresh"></i>
+                        <i class="fa fa-refresh"></i>
                     </a>
                     <a class="btn btn-danger" href="/delete_tokens" data-toggle="tooltip" data-placement="bottom" title="Delete Tokens">
                         <i class="fa fa-trash fa-lg"></i>
@@ -212,11 +212,11 @@
                                 <div class="input-group">
                                     <label>Scope <small>*</small><em> (select one or more)</em></label>
                                     <select id="scope" multiple name="scope" style="width: 100%;" required>
-                                        <option selected>logging-service:read</option>
-                                        <!--<option selected>logging-service:write</option>-->
-                                        <option selected>event-service:read</option>
-                                        <!--<option selected>event-service:write</option>-->
-                                        <option selected>directory-sync-service:read</option>
+                                        <option>logging-service:read</option>
+                                        <option>logging-service:write</option>
+                                        <option>event-service:read</option>
+                                        <option>event-service:write</option>
+                                        <option>directory-sync-service:read</option>
                                     </select>
                                 </div>
                             </div>
@@ -247,10 +247,10 @@
 {% block pagescript %}
 
     <!-- DataTables JavaScript -->
-    <script src="/dist/datatables/datatables.min.js"></script>
-    <script src="/adminlte_components/plugins/select2/select2.min.js"></script>
-    <script src="/bower_components/bootstrap-show-password/bootstrap-show-password.min.js"></script>
-    <script src="/dist/js/moment.min.js"></script>
+    <script src="/js/datatables.min.js"></script>
+    <script src="/js/select2.min.js"></script>
+    <script src="/js/bootstrap-show-password.min.js"></script>
+    <script src="/js/moment.min.js"></script>
     <script>
         $(document).ready(function() {
             if ("{{ oauth.expires_at }}".length > 0) {

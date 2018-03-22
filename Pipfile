@@ -7,10 +7,19 @@ name = "pypi"
 
 [packages]
 
+flask = "*"
+flask-security = "*"
+flask-sqlalchemy = "*"
+pancloud = "*"
+bcrypt = "*"
+tinydb = "*"
+tinymongo = "*"
 
 
 [dev-packages]
 
+pytest = "*"
+pytest-runner = "*"
 
 
 [requires]
