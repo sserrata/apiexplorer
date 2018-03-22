@@ -1,3 +1,0 @@
-[submodule "app/lib/pancloud"]
-	path = app/lib/pancloud
-	url = git@github.com:PaloAltoNetworks/pancloud.git
