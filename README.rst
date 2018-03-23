@@ -16,7 +16,7 @@ API Explorer
 
 
 
-Sample Application for the Palo Alto Networks Application Framework.
+Sample application for the Palo Alto Networks Application Framework.
 
 
 * Free software: ISC license
