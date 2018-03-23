@@ -1,6 +1,6 @@
-========
-apollo11
-========
+============
+API Explorer
+============
 
 
 .. image:: https://img.shields.io/pypi/v/apollo11.svg
