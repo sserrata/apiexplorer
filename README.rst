@@ -1,6 +1,6 @@
-========
-apollo11
-========
+============
+API Explorer
+============
 
 
 .. image:: https://img.shields.io/pypi/v/apollo11.svg
@@ -16,7 +16,7 @@ apollo11
 
 
 
-Sample Application for the Palo Alto Networks Application Framework.
+Sample application for the Palo Alto Networks Application Framework.
 
 
 * Free software: ISC license
