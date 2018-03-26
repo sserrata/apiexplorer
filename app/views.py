@@ -35,7 +35,6 @@ app.jinja_env.lstrip_blocks = True
 app.jinja_env.trim_blocks = True
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-print(basedir)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + basedir + '/db/security.db'
 db = SQLAlchemy(app)
 
@@ -218,8 +217,9 @@ class OauthDB:
         return self.activation.find_one({'_id': 1})
 
 
-authorization_base_url = 'https://identitytest.paloaltonetworks.com/as/authorization.oauth2'
-token_url = 'https://identitytest.paloaltonetworks.com/as/token.oauth2'
+AUTHORIZATION_BASE_URL = 'https://identitytest.paloaltonetworks.com/as/authorization.oauth2'
+TOKEN_URL = 'https://identitytest.paloaltonetworks.com/as/token.oauth2'
+URL = 'https://apigw-stg4.us.paloaltonetworks.com'
 
 
 # Creates default admin user on first run - uncomment afterwards
@@ -273,11 +273,12 @@ def refresh_tokens():
     client = db_.get_activation()
     refresh_token = oauth['refresh_token']
     pingid = OAuth2Session()
+    activation = db_.get_activation()
     try:
         token = pingid.refresh_token(
             client_id=client.get('client_id', ''),
             refresh_token=refresh_token,
-            token_url=token_url,
+            token_url=TOKEN_URL,
             verify=False,
             client_secret=client.get('client_secret', ''),
             auth=None
@@ -288,6 +289,7 @@ def refresh_tokens():
             'pages/authorization.html',
             tokens=db_.tokens,
             oauth=oauth,
+            activation=activation,
             alert="danger",
             msg="{}".format(_e)
         )
@@ -300,6 +302,7 @@ def refresh_tokens():
             'pages/authorization.html',
             tokens=db_.tokens,
             oauth=oauth,
+            activation=activation,
             alert="success",
             msg="SUCCESS"
         )
@@ -358,7 +361,7 @@ def pingid():
     pingid.auth = False
     pingid.verify = False
     authorization_url, state = pingid.authorization_url(
-        authorization_base_url,
+        AUTHORIZATION_BASE_URL,
         instance_id=instance_id,
         region=region
     )
@@ -386,7 +389,7 @@ def callback():
         pingid.verify = False
         try:
             token = pingid.fetch_token(
-                token_url=token_url,
+                token_url=TOKEN_URL,
                 client_secret=client.get('client_secret', ''),
                 client_id=client.get('client_id', ''),
                 code=code,
@@ -472,12 +475,12 @@ def queryexplorer():
     endtime = _to
     print(starttime, endtime)
 
-    url = 'https://dc10-appproxy01-beta1.ap.pan.local'
     response = []
+    s = ""
     start = time.time()
     if starttime and endtime:
         ls = LoggingService(
-            url=url,
+            url=URL,
             verify=False,
             headers={'Authorization': 'Bearer {}'.format(_token)}
         )
@@ -489,42 +492,53 @@ def queryexplorer():
             "endTime": int(endtime),
             "maxWaitTime": 0
         }
-        q = ls.query(data)
-        if 'error' not in q.text:
-            try:
-                query_id = q.json()['queryId']
-                data = {
-                    "maxWaitTime": 10000
-                }
-                for page in ls.iter_poll(query_id, 0, params=data):
-                    try:
-                        print(
-                            "{}: queryId: {}, sequenceNo: {}, retrieving from {},"
-                            " size: {}, took: {} ms\nresult: {}\n".format(
-                                page.json()['queryStatus'],
-                                page.json()['queryId'],
-                                page.json()['sequenceNo'],
-                                page.json()['result']['esResult']['from'],
-                                page.json()['result']['esResult']['size'],
-                                page.json()['result']['esResult']['took'],
-                                page.json()
+        try:
+            q = ls.query(data, timeout=15)
+            if 'error' not in q.text:
+                try:
+                    query_id = q.json()['queryId']
+                    data = {
+                        "maxWaitTime": 10000
+                    }
+                    for page in ls.iter_poll(query_id, 0, params=data, timeout=15):
+                        try:
+                            print(
+                                "{}: queryId: {}, sequenceNo: {}, retrieving from {},"
+                                " size: {}, took: {} ms\nresult: {}\n".format(
+                                    page.json()['queryStatus'],
+                                    page.json()['queryId'],
+                                    page.json()['sequenceNo'],
+                                    page.json()['result']['esResult']['from'],
+                                    page.json()['result']['esResult']['size'],
+                                    page.json()['result']['esResult']['took'],
+                                    page.json()
+                                )
                             )
-                        )
-                        response.append(page.json())
-                    except Exception as e:
-                        print(
-                            "{}: queryId: {}, sequenceNo: {}".format(
-                                page.json()['queryStatus'],
-                                page.json()['queryId'],
-                                page.json()['sequenceNo']
+                            response.append(page.json())
+                        except Exception as e:
+                            print(
+                                "{}: queryId: {}, sequenceNo: {}".format(
+                                    page.json()['queryStatus'],
+                                    page.json()['queryId'],
+                                    page.json()['sequenceNo']
+                                )
                             )
-                        )
-                ls.delete(query_id)
-            except Exception as e:
-                print(e)
+                    ls.delete(query_id)
+                except Exception as e:
+                    print(e)
+                    s = q.status_code
+                    response = q.text
+            else:
+                s = q.status_code
                 response = q.text
-        else:
-            response = q.text
+        except Exception as e:
+            return render_template(
+                'pages/queryexplorer.html', response=str(e),
+                sd=starttime,
+                ed=endtime, et=time.time() - start,
+                headers=[], tabular=False,
+                json=None, status=s
+            )
     et = time.time() - start
     headers = []
     try:
@@ -579,20 +593,21 @@ def queryexplorer():
     return render_template(
         'pages/queryexplorer.html', response=response, sd=starttime,
         ed=endtime, et=et, headers=headers, tabular=tabular,
-        json=json_response
+        json=json_response, status=s
     )
 
 
 @app.route('/directoryexplorer', methods=['POST', 'GET'])
 @login_required
 def directoryexplorer():
-    _obj = request.form.get('object', None)
+    obj = request.form.get('object', None)
     endpoint = request.form.get('endpoint', '')
     domain = request.form.get('domain', '')
 
     from pancloud.directorysync import DirectorySyncService
 
     results = {}
+    s = ""
     headers = []
     db_ = OauthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
@@ -600,11 +615,10 @@ def directoryexplorer():
         _token = oauth.get('access_token', '')
     except AttributeError:
         _token = ''
-    url = 'https://dc10-appproxy01-beta1.ap.pan.local'
 
     # Create Logging Service instance
     ds = DirectorySyncService(
-        url=url,
+        url=URL,
         verify=False,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
@@ -619,28 +633,25 @@ def directoryexplorer():
     m = dispatcher.get(endpoint, None)
     if m:
         try:
-            if _obj and endpoint == "query":
-                r = m(_obj, timeout=15)
-                print(r.text)
-                print(r.status_code)
+            if obj and endpoint == "query":
+                r = m(obj, timeout=15)
+                s = r.status_code
                 results = r.text
                 return render_template(
                     'pages/directoryexplorer.html', results=results,
-                    headers=headers, endpoint=endpoint
+                    headers=headers, endpoint=endpoint, status=s
                 )
-            elif _obj and endpoint == "count":
-                print(_obj, domain)
+            elif obj and endpoint == "count":
                 r = m(
-                    object_class=_obj,
+                    object_class=obj,
                     params={'domain': domain},
                     timeout=15
                 )
-                print(r.url)
-                print(r.text)
+                s = r.status_code
                 results = r.text
                 return render_template(
                     'pages/directoryexplorer.html', results=results,
-                    headers=headers, endpoint=endpoint
+                    headers=headers, endpoint=endpoint, status=s
                 )
             else:
                 data = {
@@ -650,16 +661,17 @@ def directoryexplorer():
                     data=data,
                     timeout=15
                 )
-                print(r.text)
+                s = r.status_code
                 results = r.text
                 return render_template(
                     'pages/directoryexplorer.html', results=results,
-                    headers=headers, endpoint=endpoint
+                    headers=headers, endpoint=endpoint, status=s
                 )
         except Exception as e:
             return render_template(
                 'pages/directoryexplorer.html',
                 results=e,
+                status=s,
                 headers=headers,
                 endpoint=None
             )
@@ -667,6 +679,7 @@ def directoryexplorer():
         return render_template(
             'pages/directoryexplorer.html',
             results=results,
+            status=s,
             headers=headers,
             endpoint=None
         )
@@ -685,9 +698,8 @@ def eventexplorer():
         _token = oauth.get('access_token', '')
     except AttributeError:
         _token = ''
-    _url = 'https://dc10-appproxy01-beta1.ap.pan.local'
     es = EventService(
-        url=_url,
+        url=URL,
         verify=False,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
@@ -702,49 +714,23 @@ def eventexplorer():
     if m:
         try:
             if payload:
-                print(payload)
                 r = m(channel_id, data=payload, timeout=15)
-                print(r.request.headers)
-                print(r.text)
-                print(r.status_code)
-                r = "Response Code: {}, Message: {}".format(
-                    r.status_code,
-                    r.text
-                )
+                s = r.status_code
+                r = r.text
             else:
                 r = m(channel_id, timeout=15)
-                print(r.request.headers)
-                try:
-                    print(r.json())
-                    print(r.status_code)
-                    try:
-                        b64 = r.json()[0].get('event', None)
-                    except KeyError:
-                        response = r.json()
-                    else:
-                        if b64:
-                            import base64
-                            response = base64.b64decode(b64)
-                        else:
-                            response = r.json()
-                    r = "Response Code: {}, Message (json): {}".format(
-                        r.status_code,
-                        response
-                    )
-                except Exception as e:
-                    print(e)
-                    r = "Response Code: {}, Message (text): {}".format(
-                        r.status_code,
-                        r.text
-                    )
+                s = r.status_code
+                r = r.text
         except Exception as e:
             r = "Message (error): {}".format(
                 e
             )
+            s = ""
     else:
         r = {}
+        s = ""
     return render_template(
-        'pages/eventexplorer.html', results=r
+        'pages/eventexplorer.html', results=r, status=s
     )
 
 
@@ -773,7 +759,7 @@ def get_global_variables():
             activated = False
     except AttributeError:
         activated = False
-    return dict(activated=True)
+    return dict(activated=activated)
 
 
 @security.login_context_processor

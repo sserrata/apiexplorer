@@ -9,7 +9,6 @@
 <section class="content-header">
   <h1>
     Authorization
-    <small></small>
   </h1>
 </section>
 
@@ -54,7 +53,7 @@
                     <button type="button" class="btn btn-primary disabled" data-toggle="modal" data-target="#authorization">
                         <i class="fas fa-unlock-alt fa-lg"></i> Authorize
                     </button>
-                    <a class="btn btn-success" href="/refresh_tokens" data-toggle="tooltip" data-placement="bottom" title="Refresh Tokens">
+                    <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-success" href="/refresh_tokens" data-toggle="tooltip" data-placement="bottom" title="Refresh Tokens">
                         <i class="fas fa-sync-alt"></i>
                     </a>
                     <a class="btn btn-danger" href="/delete_tokens" data-toggle="tooltip" data-placement="bottom" title="Delete Tokens">
@@ -66,64 +65,67 @@
             <hr>
             {% if activation %}
             <div class="row">
-                <div class="col-lg-4">
+                <div class="col-lg-6">
                     <div class="box box-primary">
                       <div class="box-header with-border">
                         <h3 class="box-title">Activation</h3>
                       </div>
                       <div class="box-body">
-                            <div class="table-responsive">
-                            <table class="table table-bordered table-striped" id="oauth">
-                            <tbody>
-                                <tr>
-                                    <td>Activation User</td>
-                                    <td>{{ activation.name }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Activation Email</td>
-                                    <td>{{ activation.email }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Company</td>
-                                    <td>{{ activation.company }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Department</td>
-                                    <td>{{ activation.department }}</td>
-                                </tr>
-                                <tr>
-                                    <td>URL</td>
-                                    <td>{{ activation.url }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Instance ID</td>
-                                    <td>{{ activation.instance_id }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Client ID</td>
-                                    <td>{{ activation.client_id }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Authorized</td>
-                                    <td>{{ activation.activated }}</td>
-                                </tr>
-                            </tbody>
-                            </table>
+                            <div class="table-responsive" id="activation_div">
+                                <table class="table table-bordered table-striped" id="activation_info">
+                                    <tbody>
+                                        <tr>
+                                            <td>Activation User</td>
+                                            <td>{{ activation.name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Activation Email</td>
+                                            <td>{{ activation.email }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Company</td>
+                                            <td>{{ activation.company }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Department</td>
+                                            <td>{{ activation.department }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>URL</td>
+                                            <td>{{ activation.url }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Instance ID</td>
+                                            <td>{{ activation.instance_id }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Client ID</td>
+                                            <td>{{ activation.client_id }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Authorized</td>
+                                            <td>{{ activation.activated }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
+                      </div>
+                      <div class="overlay" id="spinner2" style="display:none;">
+                          <i class="fa fa-sync-alt fa-2x fa-spin" style="color:#214558;"></i>
                       </div>
                     </div>
                 </div>
             </div>
             {% else %}
             <div class="row">
-                <div class="col-lg-4">
+                <div class="col-lg-6">
                     <div class="box box-primary">
                       <div class="box-header with-border">
                         <h3 class="box-title">Activation</h3>
                       </div>
                       <div class="box-body">
                             <div class="table-responsive">
-                            <table class="table table-bordered table-striped" id="oauth">
+                            <table class="table table-bordered table-striped" id="activation">
                             <tbody>
                                 <tr>
                                     <td>Authorized</td>
@@ -144,38 +146,41 @@
                         <h3 class="box-title">Tokens</h3>
                       </div>
                       <div class="box-body">
-                            <div class="table-responsive">
-                            <table class="table table-bordered table-striped" id="oauth">
-                            <tbody>
-                                <tr>
-                                    <td>Refresh-Token</td>
-                                    <td>
-                                        {% if oauth.refresh_token|length > 0 %}
-                                        <input id="refresh_token" type="password" data-toggle="password" class="form-control" value="{{ oauth.refresh_token }}" readonly>
-                                        {% else %}
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Access-Token</td>
-                                    <td>
-                                        {% if oauth.access_token|length > 0 %}
-                                        <input id="access_token" type="password" data-toggle="password" class="form-control" value="{{ oauth.access_token }}" readonly>
-                                        {% else %}
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Token-Type</td>
-                                    <td>{{ oauth.token_type }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Expires-At</td>
-                                    <td id="dt"></td>
-                                </tr>
-                            </tbody>
-                            </table>
+                            <div class="table-responsive" id="oauth_body_div">
+                                <table class="table table-bordered table-striped" id="oauth">
+                                    <tbody>
+                                        <tr>
+                                            <td>Refresh-Token</td>
+                                            <td>
+                                                {% if oauth.refresh_token|length > 0 %}
+                                                <input id="refresh_token" type="password" data-toggle="password" class="form-control" value="{{ oauth.refresh_token }}" readonly>
+                                                {% else %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Access-Token</td>
+                                            <td>
+                                                {% if oauth.access_token|length > 0 %}
+                                                <input id="access_token" type="password" data-toggle="password" class="form-control" value="{{ oauth.access_token }}" readonly>
+                                                {% else %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Token-Type</td>
+                                            <td>{{ oauth.token_type }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Expires-At</td>
+                                            <td id="dt"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
+                      </div>
+                      <div class="overlay" id="spinner" style="display:none;">
+                          <i class="fa fa-sync-alt fa-2x fa-spin" style="color:#214558;"></i>
                       </div>
                     </div>
                 </div>
@@ -297,18 +302,6 @@
             }
         );
     } );
-    </script>
-    <script>
-        window.setTimeout(function() {
-            $(".alert").fadeTo(1000, 0).slideUp(200, function(){
-                $(this).alert('close');
-            });
-        }, 1000);
-    </script>
-    <script>
-        $('#msg_alert').on('closed.bs.alert', function () {
-            window.location.replace("/authorization");
-        })
     </script>
     <script>
         $(document).ready(function() {

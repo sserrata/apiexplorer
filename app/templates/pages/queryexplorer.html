@@ -39,7 +39,7 @@
                                             <input type="hidden" name="from" id="from" value="{{ sd }}">
                                         </button>
                                     </div>
-                                    <button onclick="$('#box_body').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" id="submitButton">
+                                    <button onclick="$('#box_body').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" id="submitButton">
                                         Search
                                     </button>
                                 </form>
@@ -77,11 +77,15 @@
                     <div class="col-lg-12">
                         <div class="box box-primary">
                             <div class="box-header">
-                                <h3 class="box-title">
+                                <h3 class="box-title" id="box_title">
+                                    {% if response %}
                                     <small>
                                         Displaying logs from <strong>{{ sd }}</strong> to <strong>{{ ed }}</strong>
-                                         | returned {{ response|length }} chunks in {{ et }} seconds
+                                         | returned in {{ et }} seconds | HTTP Status Code: {{ status }}
                                     </small>
+                                    {% else %}
+                                    <small>No results to display</small>
+                                    {% endif %}
                                 </h3>
                             </div>
                             <div class="box-body" id="box_body">
@@ -209,19 +213,25 @@
                                                     </table>
                                                 </div>
                                                 {% elif response|length > 0 %}
-                                                <pre id="raw1"></pre>
+                                                <div class="tab-pane" id="raw">
+                                                    <meta id="raw1-json" data-object="{{ response }}">
+                                                    <pre id="raw1"></pre>
+                                                </div>
                                                 {% else %}
                                                 <div></div>
                                                 {% endif %}
                                             </div>
+                                            {% if tabular %}
                                             <div class="tab-pane" id="json">
                                                 <meta id="json-data" data-object="{{ json }}">
                                                 <pre id="prettyjson"></pre>
                                             </div>
+                                            {% elif response|length > 0 %}
+                                            <div class="tab-pane" id="json">n/a</div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                     {% else %}
-                                    <div></div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -284,9 +294,11 @@
     </script>
     <script>
         try {
-            document.getElementById("raw1").innerHTML = JSON.stringify("{{ response }}", undefined, 2);
+            var obj = $('#raw1-json').data('object');
+            document.getElementById("raw1").innerHTML = JSON.stringify(obj, undefined, 2);
         }
         catch(err) {
+            document.getElementById("prettyjson").innerHTML = err;
         }
     </script>
     <script>

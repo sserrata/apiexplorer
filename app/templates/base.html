@@ -23,6 +23,14 @@
     <link rel="stylesheet" href="/css/google-fonts.css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
   </head>
   <body class="hold-transition skin-blue-flat fixed sidebar-mini">
+    <script>
+        (function () {
+            if (Boolean(sessionStorage.getItem('sidebar-toggle-collapsed'))) {
+            var body = document.getElementsByTagName('body')[0];
+            body.className = body.className + ' sidebar-collapse';
+            }
+        })();
+    </script>
     <div class="wrapper">
 
       <header class="main-header">
@@ -61,7 +69,7 @@
               <a href="index.html"><i class="fas fa-home"></i><span> Home</span></a>
             </li>
             <li class="treeview">
-              <a href="test"><i class="fas fa-database"></i><span> Logging</span>
+              <a href="#"><i class="fas fa-database"></i><span> Logging</span>
                 <span class="pull-right-container">
                   <i class="fas fa-angle-left pull-right"></i>
                 </span>
@@ -106,7 +114,16 @@
               </a>
               <ul class="treeview-menu">
                   <li>
-                      <a href="https://github.com/PaloAltoNetworks/pancloud" target="_blank"><i class="fab fa-github"></i> PAN Cloud Python SDK</a>
+                      <a href="https://github.com/PaloAltoNetworks/pancloud" target="_blank"><i class="fab fa-github"></i> PAN Cloud SDK</a>
+                  </li>
+                  <li>
+                      <a href="https://github.com/PaloAltoNetworks/apiexplorer" target="_blank"><i class="fab fa-github"></i> API Explorer</a>
+                  </li>
+                  <li>
+                      <a href="https://gitter.im/PaloAltoNetworks/pancloud" target="_blank"><i class="fab fa-gitter"></i> PAN Cloud SDK Gitter</a>
+                  </li>
+                  <li>
+                      <a href="https://live.paloaltonetworks.com/t5/Tools/ct-p/Tools" target="_blank"><i class="fas fa-comments"></i> Developer Relations</a>
                   </li>
               </ul>
             </li>
@@ -165,7 +182,6 @@
     <script src="/js/jquery.slimscroll.min.js"></script>
     <script src="/js/adminlte.min.js"></script>
     <script src="/js/moment.min.js"></script>
-    <script defer src="https://use.fontawesome.com/releases/v5.0.8/js/all.js" integrity="sha384-SlE991lGASHoBfWbelyBPLsUlwY1GwNDJo3jSJO04KZ33K2bwfV9YBauFfnzvynJ" crossorigin="anonymous"></script>
     <script>
         var now = moment().format("dddd, MMMM Do, YYYY, h:mm:ss A");
         $('#date').append(now);
@@ -176,18 +192,26 @@
         });
     </script>
     <script>
-        /** add active class and stay opened when selected */
         var url = window.location;
-
         // for sidebar menu entirely but not cover treeview
         $('ul.sidebar-menu a').filter(function() {
              return this.href == url;
         }).parent().addClass('active');
-
         // for treeview
         $('ul.treeview-menu a').filter(function() {
              return this.href == url;
         }).parentsUntil(".sidebar-menu > .treeview-menu").addClass('active');
+    </script>
+    <script>
+        // Click handler can be added latter, after jQuery is loaded...
+        $('.sidebar-toggle').click(function(event) {
+          event.preventDefault();
+          if (Boolean(sessionStorage.getItem('sidebar-toggle-collapsed'))) {
+            sessionStorage.setItem('sidebar-toggle-collapsed', '');
+          } else {
+            sessionStorage.setItem('sidebar-toggle-collapsed', '1');
+          }
+        });
     </script>
     {% block pagescript %}{% endblock %}
   </body>

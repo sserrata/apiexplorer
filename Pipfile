@@ -14,6 +14,7 @@ pancloud = "*"
 bcrypt = "*"
 tinydb = "*"
 tinymongo = "*"
+quart = "*"
 
 
 [dev-packages]

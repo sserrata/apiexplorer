@@ -30,19 +30,19 @@
                                           <input type="text" class="form-control" name="payload" autocomplete="off" placeholder="">
                                         </div>
                                     </div>
-                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="poll">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="poll">
                                         Poll
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-info" type="submit" name="endpoint" value="get_filters">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-info" type="submit" name="endpoint" value="get_filters">
                                         Get Filters
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="set_filters">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="set_filters">
                                         Set Filters
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-success" type="submit" name="endpoint" value="ack">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-success" type="submit" name="endpoint" value="ack">
                                         ACK
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#spinner').show();" class="btn btn-danger" type="submit" name="endpoint" value="nack">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-danger" type="submit" name="endpoint" value="nack">
                                         NACK
                                     </button>
                                 </form>
@@ -54,28 +54,36 @@
                     <div class="col-lg-12">
                         <div class="box box-primary">
                             <div class="box-header">
-                                <h3 class="box-title">
+                                <h3 class="box-title" id="box_title">
+                                    {% if results|length > 0 %}
                                     <small>
-                                        Displaying results
+                                        HTTP Status Code: {{ status }}
                                     </small>
+                                    {% else %}
+                                    <small>
+                                        No results to display
+                                    </small>
+                                    {% endif %}
                                 </h3>
                             </div>
+                            {% if results|length > 0 %}
                             <div class="box-body">
-                                <div class="col-lg-12">
+                                <div class="col-lg-12" id="body_div">
                                 <div class="table-responsive">
                                     <table class="table table-striped table-bordered table-hover" id="results">
-                                        <thead>
-                                        </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>{{ results }}</td>
-                                            </tr>
+                                            <div class="tab-pane" id="json">
+                                                <meta id="json-data" data-object="{{ results }}">
+                                                <pre id="prettyjson"></pre>
+                                            </div>
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
+                            {% else %}
+                            {% endif %}
                             <div class="overlay" id="spinner" style="display:none;">
-                                <i class="fas fa-sync-alt fa-spin" style="color:#006D91"></i>
+                                <i class="fa fa-sync-alt fa-2x fa-spin" style="color:#214558;"></i>
                             </div>
                             </div>
                         </div>
@@ -112,5 +120,14 @@
         $(window).on('load',function(){
             $('#activation').modal('show');
         });
+    </script>
+    <script>
+        try {
+            var obj = $('#json-data').data('object');
+            document.getElementById("prettyjson").innerHTML = JSON.stringify(obj, undefined, 2);
+        }
+        catch(err) {
+            document.getElementById("prettyjson").innerHTML = err;
+        }
     </script>
 {% endblock %}
