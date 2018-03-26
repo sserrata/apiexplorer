@@ -773,7 +773,7 @@ def get_global_variables():
             activated = False
     except AttributeError:
         activated = False
-    return dict(activated=True)
+    return dict(activated=activated)
 
 
 @security.login_context_processor
