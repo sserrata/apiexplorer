@@ -1,37 +1,52 @@
-============
-API Explorer
-============
-
-
-.. image:: https://img.shields.io/pypi/v/apollo11.svg
-        :target: https://pypi.python.org/pypi/apollo11
-
-.. image:: https://img.shields.io/travis/sserrata/apollo11.svg
-        :target: https://travis-ci.org/sserrata/apollo11
-
-.. image:: https://readthedocs.org/projects/apollo11/badge/?version=latest
-        :target: https://apollo11.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
-
-
+============================
+Welcome to the API Explorer!
+============================
 
 
 Sample application for the Palo Alto Networks Application Framework.
 
 
 * Free software: ISC license
-* Documentation: https://apollo11.readthedocs.io.
+* Documentation: coming soon.
 
+-----
 
-Features
---------
+Requirements
+------------
 
-* TODO
+    `Python 3.6+, pipenv`
 
-Credits
--------
+Installation
+------------
 
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
+Clone the repo to your dev machine:
+    
+    `$ git clone https://github.com/PaloAltoNetworks/apiexplorer.git`
+    
+Switch to project directory:
 
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+    `$ cd apiexplorer`
+
+Use pipenv to install all dependencies and create a virtualenv for your project:
+
+    `$ pipenv --three install`
+    
+Enter a pipenv shell:
+
+    `$ pipenv shell`
+    
+Run web app:
+
+    `$ sudo ./run.py`
+    
+    `or`
+    
+    `$ sudo python run.py`
+    
+To perform authorization you'll need to append your base64 encoded params to the login URL:
+    
+    `https://localhost/login?params=<base64 encoded string>`
+    
+Credentials:
+    `admin:paloalto`
+
