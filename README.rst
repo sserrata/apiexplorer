@@ -10,7 +10,7 @@ Sample application for the Palo Alto Networks Application Framework.
 
 -----
 
-|requests| |pipenv|
+|docs| |pipenv|
 
 -----
 
