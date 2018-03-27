@@ -1,4 +1,4 @@
-* apollo11 version:
+* API Explorer version:
 * Python version:
 * Operating System:
 
