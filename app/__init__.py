@@ -1,6 +1,8 @@
 from flask import Flask, send_from_directory
 import os
 
+__version__ = '1.0.0'
+
 app = Flask(__name__, static_url_path='')
 
 
