@@ -52,10 +52,10 @@ Example
 
 API Explorer supports two different run modes: **DEFAULT** and **DEBUG**.
     
-    **DEFAULT**: API Explorer listens on `https://127.0.0.1:443` (requires sudo privileges)
+    **DEFAULT**: API Explorer listens on `https://localhost:443` (requires sudo privileges)
         - Logs info messages to console.
         
-    **DEBUG**: API Explorer listens on `http://127.0.0.1:5000`
+    **DEBUG**: API Explorer listens on `http://localhost:5000`
         - Logs debug messages and stack traces to console.
 
 **DEFAULT** Mode::
