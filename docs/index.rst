@@ -1,4 +1,4 @@
-Welcome to apollo11's documentation!
+Welcome to API Explorer's documentation!
 ======================================
 
 .. toctree::
