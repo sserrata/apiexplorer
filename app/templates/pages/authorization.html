@@ -192,11 +192,11 @@
               <div class="modal-dialog">
                 <div class="modal-content">
                   <div class="modal-header">
-                      <h4 class="modal-title" style="text-align: center;">API EXPLORER <i class="fas fa-box"></i> - Authorization</h4>
+                      <h4 class="modal-title" style="text-align: center;">API EXPLORER <i class="fas fa-sync-alt"></i> Authorization</h4>
                   </div>
                   <div class="modal-body">
                     <p>
-                        <em>Contact TAC or your Developer Relations representative if you are missing any of the required fields.</em>
+                        <em>Contact your Developer Relations representative if you are missing any of the required fields.</em>
                     </p>
                     <hr>
                     <div>
@@ -204,15 +204,15 @@
                             <div class="form-group">
                                 <div class="input-group">
                                   <label>Client ID <small>*</small></label>
-                                  <input type="text" class="form-control" name="client_id" autocomplete="off" size="50" value="hello_mars" required>
+                                  <input type="text" class="form-control" name="client_id" autocomplete="off" size="50" value="" placeholder="client_id" required>
                                 </div>
                                 <div class="input-group">
                                   <label>Client Secret <small>*</small></label>
-                                  <input type="password" data-toggle="password" class="form-control" size="54" name="client_secret" autocomplete="off" value="TsqJMxdBSW9QemYhiLs2ebwpIimTbsR8ejsRieCgtn1GkrgFSkimFIjNAlNcawvq" required>
+                                  <input type="password" data-toggle="password" class="form-control" size="54" name="client_secret" autocomplete="off" value="" placeholder="client_secret" required>
                                 </div>
                                 <div class="input-group">
-                                  <label>Redirect URI <small>*</small></label>
-                                  <input type="text" class="form-control" name="redirect_uri" autocomplete="off" size="50" value="https://localhost/auth-callback" required>
+                                  <label>Redirect URI <small>*</small><em> /auth-callback</em></label>
+                                  <input type="text" class="form-control" name="redirect_uri" autocomplete="off" size="50" value="" placeholder="redirect_uri" required>
                                 </div>
                                 <div class="input-group">
                                     <label>Scope <small>*</small><em> (select one or more)</em></label>
@@ -230,7 +230,7 @@
                             </div>
                         </form>
                         <hr>
-                        <p><em>Note: If successful, your API EXPLORER will receive tokens necessary for interacting with
+                        <p><em>Note: If successful, API EXPLORER will receive tokens necessary for interacting with
                             your Logging, Event and Directory-Sync instances.</em></p>
                     </div>
                   </div>

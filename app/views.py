@@ -19,7 +19,7 @@ log.addHandler(logging.StreamHandler(sys.stdout))
 log.setLevel(logging.DEBUG)
 
 app.jinja_env.cache = {}
-app.config['SECRET_KEY'] = 'Q5*P0MvH11G121dt'
+app.config['SECRET_KEY'] = '8Q@U99a3wd8NGuY*nRTJ#WAk4r'
 app.config['PERMANENT_SESSION_LIFETIME'] = 1200
 app.config['SECURITY_REGISTERABLE'] = False
 app.config['SECURITY_TRACKABLE'] = True
@@ -28,11 +28,12 @@ app.config['SECURITY_CHANGEABLE'] = True
 app.config['SECURITY_SEND_PASSWORD_CHANGE_EMAIL'] = False
 app.config['USE_SESSION_FOR_NEXT'] = True
 app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
-SALT = 'c572A5Q7%f6p9gya'
+SALT = 'gnEH#S8mbR^mZ46Seu^X^b^^dk'
 app.config['SECURITY_PASSWORD_SALT'] = SALT
 app.jinja_env.cache = {}
 app.jinja_env.lstrip_blocks = True
 app.jinja_env.trim_blocks = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + basedir + '/db/security.db'
@@ -107,7 +108,6 @@ class OauthDB:
             if oauth.get('token_type', '') == _type:
                 import json
                 _custom = oauth.get('access_token', '{}')
-                print(session)
                 try:
                     session['oauth_token']['token_type'] = oauth.get('token_type', '')
                     session['oauth_token']['expires_in'] = oauth.get('expires_in', '')
@@ -119,7 +119,6 @@ class OauthDB:
                 except KeyError:
                     session['oauth_token'] = {}
                     o = self.get_oauth()
-                    print(o)
                     session['oauth_token']['token_type'] = o.get('token_type', '')
                     session['oauth_token']['expires_in'] = o.get('expires_in', '')
                     session['oauth_token']['client_id'] = o.get('client_id', '')
@@ -219,7 +218,7 @@ class OauthDB:
 
 AUTHORIZATION_BASE_URL = 'https://identitytest.paloaltonetworks.com/as/authorization.oauth2'
 TOKEN_URL = 'https://identitytest.paloaltonetworks.com/as/token.oauth2'
-URL = 'https://apigw-stg4.us.paloaltonetworks.com'
+APIGW_URL = 'https://apigw-stg4.us.paloaltonetworks.com'
 
 
 # Creates default admin user on first run - uncomment afterwards
@@ -294,7 +293,6 @@ def refresh_tokens():
             msg="{}".format(_e)
         )
     else:
-        print(token)
         session['oauth_token'] = token
         db_ = OauthDB()
         db_.update_oauth(token)
@@ -473,14 +471,13 @@ def queryexplorer():
 
     starttime = _from
     endtime = _to
-    print(starttime, endtime)
 
     response = []
     s = ""
     start = time.time()
     if starttime and endtime:
         ls = LoggingService(
-            url=URL,
+            url=APIGW_URL,
             verify=False,
             headers={'Authorization': 'Bearer {}'.format(_token)}
         )
@@ -618,7 +615,7 @@ def directoryexplorer():
 
     # Create Logging Service instance
     ds = DirectorySyncService(
-        url=URL,
+        url=APIGW_URL,
         verify=False,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
@@ -699,7 +696,7 @@ def eventexplorer():
     except AttributeError:
         _token = ''
     es = EventService(
-        url=URL,
+        url=APIGW_URL,
         verify=False,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
@@ -749,7 +746,6 @@ def logo():
 
 @app.context_processor
 def get_global_variables():
-    print(session)
     db_ = OauthDB()
     client = db_.get_activation()
     try:
