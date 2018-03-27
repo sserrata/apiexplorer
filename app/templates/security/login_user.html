@@ -24,11 +24,11 @@
                 {{ login_user_form.hidden_tag() }}
                 <div class="input-group">
                     <span class="input-group-addon"><i class="fas fa-user"></i></span>
-                    {{ render_field_with_errors(login_user_form.email, class="form-control focusedInput", placeholder="Username") }}
+                    {{ render_field(login_user_form.email, class="form-control focusedInput", placeholder="Username") }}
                 </div>
                 <div class="input-group">
                     <span class="input-group-addon"><i class="fas fa-key"></i></span>
-                    {{ render_field_with_errors(login_user_form.password, class="form-control focusedInput", placeholder="Password") }}
+                    {{ render_field(login_user_form.password, class="form-control focusedInput", placeholder="Password") }}
                 </div>
                 {{ render_field(login_user_form.next) }}
                 {{ render_field(login_user_form.submit, class="btn btn-success btn-block")}}
