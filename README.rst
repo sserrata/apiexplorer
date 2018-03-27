@@ -1,52 +1,84 @@
-============================
-Welcome to the API Explorer!
-============================
-
+===================================
+API Explorer
+===================================
 
 Sample application for the Palo Alto Networks Application Framework.
 
-
+* Overview: https://github.com/PaloAltoNetworks/apiexplorer
+* Documentation: https://apiexplorer.readthedocs.io
 * Free software: ISC license
-* Documentation: coming soon.
 
 -----
 
-Requirements
-------------
+|requests| |pipenv|
 
-    `Python 3.6+, pipenv`
+-----
+
+Features
+--------
+
+- Built-in OAuth2 support for authorizing access to Application Framework and fetching tokens.
+- Built on top of Palo Alto Networks Cloud Python SDK.
+- Logging, Event and Directory-Sync Explorers.
+- Sample Query Library for Logging Service.
+- Explore API requests/responses.
+
+Status
+------
+
+API Explorer is considered **alpha** at this time.
 
 Installation
 ------------
 
-Clone the repo to your dev machine:
-    
-    `$ git clone https://github.com/PaloAltoNetworks/apiexplorer.git`
-    
-Switch to project directory:
+The easiest method to install API Explorer is to clone the repo to your dev machine::
 
-    `$ cd apiexplorer`
+    $ git clone https://github.com/PaloAltoNetworks/apiexplorer.git
 
-Use pipenv to install all dependencies and create a virtualenv for your project:
+Use |pipenv| to install all dependencies and create a virtualenv for your project::
 
-    `$ pipenv --three install`
-    
-Enter a pipenv shell:
+    $ pipenv install
 
-    `$ pipenv shell`
-    
-Run web app:
+You can specify which python version to use by adding "--two" or "--three" to pipenv install or shell arguments::
 
-    `$ sudo ./run.py`
-    
-    `or`
-    
-    `$ sudo python run.py`
-    
-To perform authorization you'll need to append your base64 encoded params to the login URL:
-    
-    `https://localhost/login?params=<base64 encoded string>`
-    
-Credentials:
-    `admin:paloalto`
+    $ pipenv --three install
 
+Enter a pipenv shell::
+
+    $ pipenv shell
+
+Example
+--------------
+
+API Explorer supports two different run modes: `DEFAULT` and `DEBUG`.
+    
+    `DEFAULT`: API Explorer listens on `https://127.0.0.1:443` (requires sudo privileges)
+        - Logs info messages to console.
+    `DEBUG`: API Explorer listens on `http://127.0.0.1:5000`
+        - Logs debug messages and stack traces to console.
+
+`DEFAULT` Mode::
+
+    $ ./sudo run.py
+    
+`DEBUG` Mode::
+
+    $ ./run.py -d
+    
+    or
+    
+    $ ./run.py --debug
+
+
+Contributors
+------------
+
+- Steven Serrata - `github <https://github.com/sserrata>`__
+
+.. |requests| image:: https://img.shields.io/badge/docs-requests-blue.svg
+    :target: http://docs.python-requests.org/en/master
+    :alt: Documentation Status
+
+.. |pipenv| image:: https://img.shields.io/badge/docs-pipenv-green.svg
+    :target: https://docs.pipenv.org
+    :alt: Documentation Status
