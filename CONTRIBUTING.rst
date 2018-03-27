@@ -15,7 +15,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/sserrata/apollo11/issues.
+Report bugs at https://github.com/PaloAltoNetworks/apiexplorer/issues.
 
 If you are reporting a bug, please include:
 
@@ -45,7 +45,7 @@ articles, and such.
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/sserrata/apollo11/issues.
+The best way to send feedback is to file an issue at https://github.com/PaloAltoNetworks/apiexplorer/issues.
 
 If you are proposing a feature:
 
@@ -59,16 +59,15 @@ Get Started!
 
 Ready to contribute? Here's how to set up `apollo11` for local development.
 
-1. Fork the `apollo11` repo on GitHub.
+1. Fork the `API Explorer` repo on GitHub.
 2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/apollo11.git
+    $ git clone git@github.com:your_name_here/apiexplorer.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv. Assuming you have pipenv installed, this is how you set up your fork for local development::
 
-    $ mkvirtualenv apollo11
-    $ cd apollo11/
-    $ python setup.py develop
+    $ cd apiexplorer
+    $ pipenv install
 
 4. Create a branch for local development::
 
@@ -76,53 +75,19 @@ Ready to contribute? Here's how to set up `apollo11` for local development.
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the
-   tests, including testing other Python versions with tox::
-
-    $ flake8 apollo11 tests
-    $ python setup.py test or py.test
-    $ tox
-
-   To get flake8 and tox, just pip install them into your virtualenv.
-
-6. Commit your changes and push your branch to GitHub::
+5. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitHub website.
+6. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------
 
 Before you submit a pull request, check that it meets these guidelines:
 
-1. The pull request should include tests.
-2. If the pull request adds functionality, the docs should be updated. Put
+1. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 2.7, 3.4, 3.5 and 3.6, and for PyPy. Check
-   https://travis-ci.org/sserrata/apollo11/pull_requests
-   and make sure that the tests pass for all supported Python versions.
-
-Tips
-----
-
-To run a subset of tests::
-
-$ py.test tests.test_apollo11
-
-
-Deploying
----------
-
-A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
-
-$ bumpversion patch # possible: major / minor / patch
-$ git push
-$ git push --tags
-
-Travis will then deploy to PyPI if tests pass.
