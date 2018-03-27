@@ -80,6 +80,6 @@ Contributors
     :target: https://docs.pipenv.org
     :alt: Documentation
     
-.. |docs| image:: https://readthedocs.org/projects/apiexplorer/badge/?version=latest
-        :target: https://apiexplorer.readthedocs.io/en/latest/?badge=latest
+.. |docs| image:: https://readthedocs.org/projects/api-explorer/badge/?version=latest
+        :target: https://api-explorer.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
