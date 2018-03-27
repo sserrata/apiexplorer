@@ -7,16 +7,16 @@ from flask import render_template, send_from_directory, request, \
     redirect, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, \
-    UserMixin, RoleMixin, login_required, current_user
+    UserMixin, RoleMixin, login_required
 from requests_oauthlib import OAuth2Session
 from app import app
 
 # Uncomment for detailed oauthlib logs
-import logging
-import sys
-log = logging.getLogger('requests_oauthlib')
-log.addHandler(logging.StreamHandler(sys.stdout))
-log.setLevel(logging.DEBUG)
+# import logging
+# import sys
+# log = logging.getLogger('requests_oauthlib')
+# log.addHandler(logging.StreamHandler(sys.stdout))
+# log.setLevel(logging.DEBUG)
 
 app.jinja_env.cache = {}
 app.config['SECRET_KEY'] = '8Q@U99a3wd8NGuY*nRTJ#WAk4r'
@@ -183,11 +183,6 @@ class OauthDB:
                     'instance_id': client.get('instance_id', ''),
                     'scope': client.get('scope', ''),
                     'activated': client.get('activated', False),
-                    'name': session.get('name', ''),
-                    'email': session.get('email', ''),
-                    'company': session.get('company', ''),
-                    'department': session.get('department', ''),
-                    'url': session.get('url', '')
                 }
             )
         except DuplicateKeyError:
@@ -203,11 +198,6 @@ class OauthDB:
                         'instance_id': client.get('instance_id', ''),
                         'scope': client.get('scope', ''),
                         'activated': client.get('activated', False),
-                        'name': session.get('name', ''),
-                        'email': session.get('email', ''),
-                        'company': session.get('company', ''),
-                        'department': session.get('department', ''),
-                        'url': session.get('url', '')
                     }
                 }
             )
@@ -323,9 +313,9 @@ def delete_tokens():
     )
 
 
-@app.route("/pingid", methods=['POST', 'GET'])
+@app.route("/idp", methods=['POST', 'GET'])
 @login_required
-def pingid():
+def idp():
     """Authorize user."""
     form = request.form
     client_id = form.get('client_id', None)
@@ -350,15 +340,15 @@ def pingid():
     a = db_.get_activation()
 
     _state = uuid.uuid4()
-    pingid = OAuth2Session(
+    idp = OAuth2Session(
         client_id=a.get('client_id', ''),
         scope=a.get('scope', ''),
         redirect_uri=a.get('redirect_uri', ''),
         state=_state
     )
-    pingid.auth = False
-    pingid.verify = False
-    authorization_url, state = pingid.authorization_url(
+    idp.auth = False
+    idp.verify = False
+    authorization_url, state = idp.authorization_url(
         AUTHORIZATION_BASE_URL,
         instance_id=instance_id,
         region=region
@@ -378,15 +368,15 @@ def callback():
     error_description = request.args.get('error_description', '')
     oauth_state = session.get('oauth_state', '')
     if oauth_state == uuid.UUID(state):
-        pingid = OAuth2Session(
+        idp = OAuth2Session(
             client_id=client.get('client_id', ''),
             redirect_uri=client.get('redirect_uri', ''),
             state=state
         )
-        pingid.auth = None
-        pingid.verify = False
+        idp.auth = None
+        idp.verify = False
         try:
-            token = pingid.fetch_token(
+            token = idp.fetch_token(
                 token_url=TOKEN_URL,
                 client_secret=client.get('client_secret', ''),
                 client_id=client.get('client_id', ''),
@@ -773,25 +763,11 @@ def login_register_processor():
             }
             instance_id = parsed_params.get('instance_id', '')
             region = parsed_params.get('region', '')
-            name = parsed_params.get('name', '')
-            email = parsed_params.get('email', '')
-            company = parsed_params.get('company', '')
-            department = parsed_params.get('department', '')
             url = parsed_params.get('url', '')
             session['instance_id'] = instance_id
             session['region'] = region
-            session['name'] = name
-            session['email'] = email
-            session['company'] = company
-            session['department'] = department
-            session['url'] = url
         else:
             session['instance_id'] = ''
             session['region'] = ''
-            session['name'] = ''
-            session['email'] = ''
-            session['company'] = ''
-            session['department'] = ''
-            session['url'] = ''
     return dict()
 

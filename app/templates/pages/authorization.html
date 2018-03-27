@@ -75,24 +75,17 @@
                                 <table class="table table-bordered table-striped" id="activation_info">
                                     <tbody>
                                         <tr>
-                                            <td>Activation User</td>
-                                            <td>{{ activation.name }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Activation Email</td>
-                                            <td>{{ activation.email }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Company</td>
-                                            <td>{{ activation.company }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Department</td>
-                                            <td>{{ activation.department }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>URL</td>
-                                            <td>{{ activation.url }}</td>
+                                            <td>Scope</td>
+                                            {% set scopes = activation.scope.split(' ') %}
+                                            {% if scopes|length > 0 %}
+                                            <td>
+                                                {% for scope in scopes %}
+                                                <span class="label label-primary">{{ scope }}</span>
+                                                {% endfor %}
+                                            </td>
+                                            {% else %}
+                                            <td>{{ activation.scope }}</td>
+                                            {% endif %}
                                         </tr>
                                         <tr>
                                             <td>Instance ID</td>
@@ -200,7 +193,7 @@
                     </p>
                     <hr>
                     <div>
-                        <form action="pingid" method="post" id="authorize">
+                        <form action="idp" method="post" id="authorize">
                             <div class="form-group">
                                 <div class="input-group">
                                   <label>Client ID <small>*</small></label>
