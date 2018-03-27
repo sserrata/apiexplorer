@@ -76,10 +76,10 @@ Contributors
 
 - Steven Serrata - `github <https://github.com/sserrata>`__
 
-.. |requests| image:: https://img.shields.io/badge/docs-requests-blue.svg
-    :target: http://docs.python-requests.org/en/master
-    :alt: Documentation Status
-
 .. |pipenv| image:: https://img.shields.io/badge/docs-pipenv-green.svg
     :target: https://docs.pipenv.org
-    :alt: Documentation Status
+    :alt: Documentation
+    
+.. |docs| image:: https://readthedocs.org/projects/apiexplorer/badge/?version=latest
+        :target: https://apiexplorer.readthedocs.io/en/latest/?badge=latest
+        :alt: Documentation Status
