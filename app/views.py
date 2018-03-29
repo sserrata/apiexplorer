@@ -206,8 +206,9 @@ class OauthDB:
         return self.activation.find_one({'_id': 1})
 
 
-AUTHORIZATION_BASE_URL = 'https://identitytest.paloaltonetworks.com/as/authorization.oauth2'
-TOKEN_URL = 'https://identitytest.paloaltonetworks.com/as/token.oauth2'
+AUTHORIZATION_BASE_URL = 'https://identity.paloaltonetworks.com/as/authorization.oauth2'
+TOKEN_URL = 'https://api.paloaltonetworks.com/api/oauth2/RequestToken'
+REVOKE_TOKEN_URL = 'https://api.paloaltonetworks.com/api/oauth2/RevokeToken'
 APIGW_URL = 'https://apigw-stg4.us.paloaltonetworks.com'
 
 
@@ -261,10 +262,10 @@ def refresh_tokens():
     oauth = session.get('oauth_token', db_.get_oauth())
     client = db_.get_activation()
     refresh_token = oauth['refresh_token']
-    pingid = OAuth2Session()
+    idp_ = OAuth2Session()
     activation = db_.get_activation()
     try:
-        token = pingid.refresh_token(
+        token = idp_.refresh_token(
             client_id=client.get('client_id', ''),
             refresh_token=refresh_token,
             token_url=TOKEN_URL,
@@ -294,6 +295,92 @@ def refresh_tokens():
             alert="success",
             msg="SUCCESS"
         )
+
+
+@app.route('/revoke_access_token')
+@login_required
+def revoke_access_token():
+    import requests
+    db_ = OauthDB()
+    oauth = session.get('oauth_token', db_.get_oauth())
+    client = db_.get_activation()
+    access_token = oauth['access_token']
+    client_secret = oauth['client_secret']
+    body = {
+        'client_id': client.get('client_id', ''),
+        'token': access_token,
+        'token_type_hint': 'access_token',
+        'client_secret': client_secret
+    }
+    with requests.Session() as s:
+        s.verify = False
+        s.auth = None
+        s.headers = '{Content-Type: application/x-www-form-urlencoded}'
+        try:
+            s.post(
+                url=REVOKE_TOKEN_URL,
+                data=body
+            )
+        except Exception as _e:
+            print(_e)
+            return render_template(
+                'pages/authorization.html',
+                tokens=db_.tokens,
+                oauth=oauth,
+                alert="danger",
+                msg="{}".format(_e)
+            )
+        else:
+            return render_template(
+                'pages/authorization.html',
+                tokens=db_.tokens,
+                oauth=oauth,
+                alert="success",
+                msg="SUCCESS"
+            )
+
+
+@app.route('/revoke_refresh_token')
+@login_required
+def revoke_refresh_token():
+    import requests
+    db_ = OauthDB()
+    oauth = session.get('oauth_token', db_.get_oauth())
+    client = db_.get_activation()
+    refresh_token = oauth['refresh_token']
+    client_secret = oauth['client_secret']
+    body = {
+        'client_id': client.get('client_id', ''),
+        'token': refresh_token,
+        'token_type_hint': 'refresh_token',
+        'client_secret': client_secret
+    }
+    with requests.Session() as s:
+        s.verify = False
+        s.auth = None
+        s.headers = '{Content-Type: application/x-www-form-urlencoded}'
+        try:
+            s.post(
+                url=REVOKE_TOKEN_URL,
+                data=body
+            )
+        except Exception as _e:
+            print(_e)
+            return render_template(
+                'pages/authorization.html',
+                tokens=db_.tokens,
+                oauth=oauth,
+                alert="danger",
+                msg="{}".format(_e)
+            )
+        else:
+            return render_template(
+                'pages/authorization.html',
+                tokens=db_.tokens,
+                oauth=oauth,
+                alert="success",
+                msg="SUCCESS"
+            )
 
 
 @app.route('/delete_tokens')

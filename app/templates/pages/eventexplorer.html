@@ -21,13 +21,13 @@
                                     <div class="form-group">
                                         <div class="input-group">
                                           <label>Channel-ID</label>
-                                          <input type="text" class="form-control" name="channel" autocomplete="off" value="EventFilter">
+                                          <input id="channelid" type="text" class="form-control" name="channel" autocomplete="off" placeholder="channel-id">
                                         </div>
                                     </div>
                                    <div class="form-group">
                                         <div class="input-group">
                                           <label>Payload <small><em>(optional)</em></small></label></label>
-                                          <input type="text" class="form-control" name="payload" autocomplete="off" placeholder="">
+                                          <input id="payload" type="text" class="form-control" name="payload" autocomplete="off" placeholder="">
                                         </div>
                                     </div>
                                     <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="poll">
@@ -128,6 +128,35 @@
         }
         catch(err) {
             document.getElementById("prettyjson").innerHTML = err;
+        }
+    </script>
+    <script>
+        $("#channelid").click(function() {
+          var data = {};
+          data.Text = $("#form-field").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("form-field", JSON.stringify(data));
+        });
+
+        $("#payload").click(function() {
+          var data = {};
+          data.Text = $("#form-field").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("form-field", JSON.stringify(data));
+        });
+
+        //On load
+        var data = localStorage.getItem("form-field");
+        var dataObject;
+
+        if (data != null) //There's stored data
+        {
+          dataObject = JSON.parse(data);
+          $("#form-field").val(dataObject.Text)
+
+          localStorage.removeItem("form-field"); //Remove data, otherwise it'll be there for a long time.
         }
     </script>
 {% endblock %}

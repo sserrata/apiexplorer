@@ -31,19 +31,19 @@
                                     <div class="form-group">
                                         <div class="input-group">
                                           <label>Domain <small><em>(optional)</em></small></label>
-                                          <input type="text" class="form-control" name="domain" autocomplete="off" value="ad2.daniel.com">
+                                          <input id="form-field" type="text" class="form-control" name="domain" autocomplete="off" placeholder="example.com">
                                         </div>
                                     </div>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="attributes">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="attributes" id="attributes">
                                         Attributes
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-info" type="submit" name="endpoint" value="count">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-info" type="submit" name="endpoint" value="count" id="count">
                                         Count
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-warning" type="submit" name="endpoint" value="domains">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-warning" type="submit" name="endpoint" value="domains" id="domains">
                                         Domains
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-success" type="submit" name="endpoint" value="query">
+                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-success" type="submit" name="endpoint" value="query" id="query">
                                         Query
                                     </button>
                                 </form>
@@ -130,6 +130,52 @@
         }
         catch(err) {
             document.getElementById("prettyjson").innerHTML = err;
+        }
+    </script>
+    <script>
+        $("#attributes").click(function() {
+          var data = {};
+          data.Text = $("#form-field").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("form-field", JSON.stringify(data));
+        });
+
+        $("#count").click(function() {
+          var data = {};
+          data.Text = $("#form-field").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("form-field", JSON.stringify(data));
+        });
+
+        $("#domains").click(function() {
+          var data = {};
+          data.Text = $("#form-field").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("form-field", JSON.stringify(data));
+        });
+
+        $("#query").click(function() {
+          var data = {};
+          data.Text = $("#form-field").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("form-field", JSON.stringify(data));
+        });
+
+
+        //On load
+        var data = localStorage.getItem("form-field");
+        var dataObject;
+
+        if (data != null) //There's stored data
+        {
+          dataObject = JSON.parse(data);
+          $("#form-field").val(dataObject.Text)
+
+          localStorage.removeItem("form-field"); //Remove data, otherwise it'll be there for a long time.
         }
     </script>
 {% endblock %}
