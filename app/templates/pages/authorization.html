@@ -46,6 +46,12 @@
                     <a class="btn btn-success disabled" href="/refresh_tokens">
                         <i class="fas fa-sync-alt"></i>
                     </a>
+                    <a class="btn btn-warning disabled" href="/revoke_access_token">
+                        <i class="fas fa-ban"></i>
+                    </a>
+                    <a class="btn btn-warning disabled" href="/revoke_refresh_token">
+                        <i class="fas fa-ban"></i>
+                    </a>
                     <a class="btn btn-danger disabled" href="/delete_tokens">
                         <i class="fas fa-trash fa-lg"></i>
                     </a>
@@ -56,7 +62,13 @@
                     <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-success" href="/refresh_tokens" data-toggle="tooltip" data-placement="bottom" title="Refresh Tokens">
                         <i class="fas fa-sync-alt"></i>
                     </a>
-                    <a class="btn btn-danger" href="/delete_tokens" data-toggle="tooltip" data-placement="bottom" title="Delete Tokens">
+                    <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-warning" href="/revoke_access_token" data-toggle="tooltip" data-placement="bottom" title="Revoke Access Token">
+                        <i class="fas fa-ban"></i>
+                    </a>
+                    <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-warning" href="/revoke_refresh_token" data-toggle="tooltip" data-placement="bottom" title="Revoke Refresh Token">
+                        <i class="fas fa-ban"></i>
+                    </a>
+                    <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-danger" href="/delete_tokens" data-toggle="tooltip" data-placement="bottom" title="Delete Tokens">
                         <i class="fas fa-trash fa-lg"></i>
                     </a>
                     {% endif %}
