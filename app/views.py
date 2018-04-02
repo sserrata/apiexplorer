@@ -305,16 +305,14 @@ def revoke_access_token():
     db_ = OauthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
     client = db_.get_activation()
-    access_token = oauth['access_token']
-    client_secret = oauth['client_secret']
     body = {
         'client_id': client.get('client_id', ''),
-        'token': access_token,
+        'token': client.get('access_token', ''),
         'token_type_hint': 'access_token',
-        'client_secret': client_secret
+        'client_secret': client.get('client_secret', '')
     }
     with requests.Session() as s:
-        s.verify = False
+        s.verify = True
         s.auth = None
         s.headers = '{Content-Type: application/x-www-form-urlencoded}'
         try:
@@ -348,16 +346,14 @@ def revoke_refresh_token():
     db_ = OauthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
     client = db_.get_activation()
-    refresh_token = oauth['refresh_token']
-    client_secret = oauth['client_secret']
     body = {
         'client_id': client.get('client_id', ''),
-        'token': refresh_token,
+        'token': client.get('refresh_token', ''),
         'token_type_hint': 'refresh_token',
-        'client_secret': client_secret
+        'client_secret': client.get('client_secret', '')
     }
     with requests.Session() as s:
-        s.verify = False
+        s.verify = True
         s.auth = None
         s.headers = '{Content-Type: application/x-www-form-urlencoded}'
         try:
