@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-import os, sys
+import os
 from app import app
 import gunicorn.app.base
 from gunicorn.six import iteritems
 import argparse
+import ssl
 
 
 """Run Micro-instance of API Explorer
@@ -52,8 +53,27 @@ if __name__ == '__main__':
         DEBUG = False
 
     if DEBUG:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        if os.path.exists(
+            '/etc/ssl/certs/apiexplorer.key'
+        ) and os.path.exists('/etc/ssl/certs/apiexplorer.crt'):
+            context.load_cert_chain(
+                '/etc/ssl/certs/apiexplorer.crt',
+                '/etc/ssl/certs/apiexplorer.key'
+            )
+        elif os.path.exists(
+            'ssl/cert.key'
+        ) and os.path.exists('ssl/cert.pem'):
+            context.load_cert_chain(
+                'ssl/cert.key',
+                'ssl/cert.pem'
+            )
+        else:
+            context = 'adhoc'
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
-        app.run(host='127.0.0.1', port=5000, debug=True)
+        app.run(
+            host='0.0.0.0', port=443, debug=True, ssl_context=context
+        )
     else:
         options = {
             'bind': '%s:%s' % ('127.0.0.1', '443'),

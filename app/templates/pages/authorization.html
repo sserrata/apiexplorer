@@ -157,7 +157,7 @@
                                         <tr>
                                             <td>Refresh-Token</td>
                                             <td>
-                                                {% if oauth.refresh_token|length > 0 %}
+                                                {% if oauth.refresh_token %}
                                                 <input id="refresh_token" type="password" data-toggle="password" class="form-control" value="{{ oauth.refresh_token }}" readonly>
                                                 {% else %}
                                                 {% endif %}
@@ -166,7 +166,7 @@
                                         <tr>
                                             <td>Access-Token</td>
                                             <td>
-                                                {% if oauth.access_token|length > 0 %}
+                                                {% if oauth.access_token %}
                                                 <input id="access_token" type="password" data-toggle="password" class="form-control" value="{{ oauth.access_token }}" readonly>
                                                 {% else %}
                                                 {% endif %}
@@ -209,24 +209,24 @@
                             <div class="form-group">
                                 <div class="input-group">
                                   <label>Client ID <small>*</small></label>
-                                  <input type="text" class="form-control" name="client_id" autocomplete="off" size="50" value="" placeholder="client_id" required>
+                                  <input type="text" class="form-control" name="client_id" autocomplete="off" size="50" value="api_explorer" placeholder="client_id" required>
                                 </div>
                                 <div class="input-group">
                                   <label>Client Secret <small>*</small></label>
-                                  <input type="password" data-toggle="password" class="form-control" size="54" name="client_secret" autocomplete="off" value="" placeholder="client_secret" required>
+                                  <input type="password" data-toggle="password" class="form-control" size="54" name="client_secret" autocomplete="off" value="CyH0gQMHi2cfv0YLZLXHv1SGUJiUVylYKjGpDTx7wsWMvw6QgoBBpDMrbFEougdB" placeholder="client_secret" required>
                                 </div>
                                 <div class="input-group">
                                   <label>Redirect URI <small>*</small><em> /auth-callback</em></label>
-                                  <input type="text" class="form-control" name="redirect_uri" autocomplete="off" size="50" value="" placeholder="redirect_uri" required>
+                                  <input type="text" class="form-control" name="redirect_uri" autocomplete="off" size="50" value="https://localhost/auth-callback" placeholder="redirect_uri" required>
                                 </div>
                                 <div class="input-group">
                                     <label>Scope <small>*</small><em> (select one or more)</em></label>
                                     <select id="scope" multiple name="scope" style="width: 100%;" required>
-                                        <option>logging-service:read</option>
+                                        <option selected>logging-service:read</option>
                                         <option>logging-service:write</option>
-                                        <option>event-service:read</option>
+                                        <option selected>event-service:read</option>
                                         <option>event-service:write</option>
-                                        <option>directory-sync-service:read</option>
+                                        <option selected>directory-sync-service:read</option>
                                     </select>
                                 </div>
                             </div>

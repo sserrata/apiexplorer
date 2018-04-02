@@ -12,11 +12,11 @@ from requests_oauthlib import OAuth2Session
 from app import app
 
 # Uncomment for detailed oauthlib logs
-# import logging
-# import sys
-# log = logging.getLogger('requests_oauthlib')
-# log.addHandler(logging.StreamHandler(sys.stdout))
-# log.setLevel(logging.DEBUG)
+import logging
+import sys
+log = logging.getLogger('requests_oauthlib')
+log.addHandler(logging.StreamHandler(sys.stdout))
+log.setLevel(logging.DEBUG)
 
 app.jinja_env.cache = {}
 app.config['SECRET_KEY'] = '8Q@U99a3wd8NGuY*nRTJ#WAk4r'
@@ -221,6 +221,7 @@ def create_user():
             user_datastore.create_user(email='admin', password='paloalto')
             db.session.commit()
     except Exception as e:
+        print(e)
         db.create_all()
         user_datastore.create_user(email='admin', password='paloalto')
         db.session.commit()
@@ -269,7 +270,7 @@ def refresh_tokens():
             client_id=client.get('client_id', ''),
             refresh_token=refresh_token,
             token_url=TOKEN_URL,
-            verify=False,
+            verify=True,
             client_secret=client.get('client_secret', ''),
             auth=None
         )
@@ -427,15 +428,15 @@ def idp():
     a = db_.get_activation()
 
     _state = uuid.uuid4()
-    idp = OAuth2Session(
+    idp_ = OAuth2Session(
         client_id=a.get('client_id', ''),
         scope=a.get('scope', ''),
         redirect_uri=a.get('redirect_uri', ''),
         state=_state
     )
-    idp.auth = False
-    idp.verify = False
-    authorization_url, state = idp.authorization_url(
+    idp_.auth = False
+    idp_.verify = False
+    authorization_url, state = idp_.authorization_url(
         AUTHORIZATION_BASE_URL,
         instance_id=instance_id,
         region=region
@@ -455,21 +456,21 @@ def callback():
     error_description = request.args.get('error_description', '')
     oauth_state = session.get('oauth_state', '')
     if oauth_state == uuid.UUID(state):
-        idp = OAuth2Session(
+        idp_ = OAuth2Session(
             client_id=client.get('client_id', ''),
             redirect_uri=client.get('redirect_uri', ''),
             state=state
         )
-        idp.auth = None
-        idp.verify = False
+        idp_.auth = None
+        idp_.verify = False
         try:
-            token = idp.fetch_token(
+            token = idp_.fetch_token(
                 token_url=TOKEN_URL,
                 client_secret=client.get('client_secret', ''),
                 client_id=client.get('client_id', ''),
                 code=code,
                 auth=False,
-                verify=False
+                verify=True
             )
         except Exception as _e:
             print('Exception occurred: {}'.format(_e))
@@ -492,8 +493,6 @@ def callback():
             db_.update_activation(client)
             db_.update_oauth(token)
             return redirect('/authorization')
-
-    db_ = OauthDB()
     return render_template(
         'pages/authorization.html',
         tokens=db_.tokens,
@@ -555,7 +554,7 @@ def queryexplorer():
     if starttime and endtime:
         ls = LoggingService(
             url=APIGW_URL,
-            verify=False,
+            verify=True,
             headers={'Authorization': 'Bearer {}'.format(_token)}
         )
 
@@ -693,7 +692,7 @@ def directoryexplorer():
     # Create Logging Service instance
     ds = DirectorySyncService(
         url=APIGW_URL,
-        verify=False,
+        verify=True,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
 
@@ -774,7 +773,7 @@ def eventexplorer():
         _token = ''
     es = EventService(
         url=APIGW_URL,
-        verify=False,
+        verify=True,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
     dispatcher = {
