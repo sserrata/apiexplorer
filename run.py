@@ -5,6 +5,7 @@ import gunicorn.app.base
 from gunicorn.six import iteritems
 import argparse
 import ssl
+from multiprocessing import cpu_count
 
 
 """Run Micro-instance of API Explorer
@@ -12,6 +13,10 @@ import ssl
 For development, debugging or troubleshooting.
 
 """
+
+
+def max_workers():
+    return cpu_count() * 2 + 1
 
 
 class WebApp(gunicorn.app.base.BaseApplication):
@@ -76,15 +81,14 @@ if __name__ == '__main__':
         )
     else:
         options = {
-            'bind': '%s:%s' % ('127.0.0.1', '443'),
-            'workers': '4',
+            'bind': 'unix:/opt/apiexplorer/gunicorn.sock',
+            'umask': '0',
+            'workers': '%s' % max_workers(),
             'timeout': '300',
             'loglevel': 'info',
-            'max_requests': '25',
+            'max_requests': '50',
             'worker_class': 'sync',
-            'errorlog': '-',
-            'accesslog': '-',
-            'certfile': 'app/ssl/cert.pem',
-            'keyfile': 'app/ssl/cert.key'
+            'errorlog': '/var/log/gunicorn/error.log',
+            'accesslog': '/var/log/gunicorn/access.log',
         }
         WebApp(app, options).run()

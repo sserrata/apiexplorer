@@ -4,7 +4,7 @@ import uuid
 from tinymongo import TinyMongoClient, DuplicateKeyError
 
 from flask import render_template, send_from_directory, request, \
-    redirect, session
+    redirect, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, \
     UserMixin, RoleMixin, login_required
@@ -810,6 +810,53 @@ def eventexplorer():
     return render_template(
         'pages/eventexplorer.html', results=r, status=s
     )
+
+
+@app.route('/updates', methods=['GET'])
+@login_required
+def updates():
+    return render_template(
+        'pages/updates.html',
+        msg="",
+        status=""
+    )
+
+
+@app.route('/check_for_updates', methods=['GET'])
+@login_required
+def check_for_updates():
+    from github import Github
+    import ssl
+    g = Github()
+    try:
+        o = g.get_organization('PaloAltoNetworks')
+        r = o.get_repo('apiexplorer')
+    except ssl.SSLError as e:
+        return render_template(
+            'pages/updates.html',
+            msg="{}".format(e),
+            status="danger"
+        )
+    else:
+        try:
+            last_commit = r.get_commits()[0].sha
+        except (TypeError, KeyError):
+            last_commit = ''
+        with open('.git/logs/HEAD', 'rb') as logs:
+            last = logs.readlines()[-1].decode()
+            commit = last.split(' ')[1]
+        if commit == last_commit:
+            return render_template(
+                'pages/updates.html',
+                msg="Update available",
+                status="warning"
+            )
+        else:
+            return render_template(
+                'pages/updates.html',
+                msg="No Updates Available",
+                status="success"
+            )
 
 
 @app.route('/favicon.ico')

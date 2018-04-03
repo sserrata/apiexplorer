@@ -1,0 +1,60 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>
+    Updates
+  </h1>
+</section>
+
+<section class="content-header">
+    <div class="col-md-6">
+    {% if msg|length > 0 %}
+    <div class="alert alert-{{ status }} alert-dismissible" id="msg_alert" style="width: 300px">
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+        <h4><i class="icon fas fa-info-circle"></i> {{ msg }}</h4>
+    </div>
+    {% endif %}
+    </div>
+</section>
+
+<!-- Main content -->
+<section class="content">
+
+<div id="page-wrapper">
+     <div class="container-fluid">
+        <div class="col-md-12">
+            <div class="row">
+                <a class="btn btn-primary" href="/check_for_updates" data-toggle="tooltip" data-placement="right" title="Check for Updates">
+                    <i class="fas fa-sync-alt"></i>
+                </a>
+            </div>
+            {% if mgs|length > 0 and status == "warning" %}
+            <div class="row">
+                <a class="btn btn-success" href="/update" data-toggle="tooltip" data-placement="right" title="Update API Explorer">
+                    Update
+                </a>
+            </div>
+            {% endif %}
+            <hr>
+        </div>
+     </div>
+</div>
+</section>
+</div>
+
+{% endblock %}
+
+{% block pagescript %}
+
+    <!-- DataTables JavaScript -->
+    <script src="/js/datatables.min.js"></script>
+    <script src="/js/select2.min.js"></script>
+    <script src="/js/bootstrap-show-password.min.js"></script>
+    <script src="/js/moment.min.js"></script>
+{% endblock %}
