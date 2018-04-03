@@ -21,28 +21,28 @@
                                     <div class="form-group">
                                         <div class="input-group">
                                           <label>Channel-ID</label>
-                                          <input id="channelid" type="text" class="form-control" name="channel" autocomplete="off" placeholder="channel-id">
+                                          <input id="channelid" type="text" class="form-control" name="channel" autocomplete="off" placeholder="event-filter">
                                         </div>
                                     </div>
                                    <div class="form-group">
                                         <div class="input-group">
-                                          <label>Payload <small><em>(optional)</em></small></label></label>
-                                          <input id="payload" type="text" class="form-control" name="payload" autocomplete="off" placeholder="">
+                                          <label>Payload <small><em>(optional)</em></small></label>
+                                          <input id="payload" type="text" class="form-control" name="payload" autocomplete="off" placeholder='{ "filters" : [ {"panw.threat": "SELECT * FROM `panw.threat`"}, {"panw.traffic": "SELECT * FROM `panw.traffic`"}]'>
                                         </div>
                                     </div>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="poll">
+                                    <button id="submitPoll" onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="poll">
                                         Poll
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-info" type="submit" name="endpoint" value="get_filters">
+                                    <button id="getFilter" onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-info" type="submit" name="endpoint" value="get_filters">
                                         Get Filters
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="set_filters">
+                                    <button id="submitPayload" onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-primary" type="submit" name="endpoint" value="set_filters">
                                         Set Filters
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-success" type="submit" name="endpoint" value="ack">
+                                    <button id="submitAck" onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-success" type="submit" name="endpoint" value="ack">
                                         ACK
                                     </button>
-                                    <button onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-danger" type="submit" name="endpoint" value="nack">
+                                    <button id="submitNack" onclick="$('#body_div').empty(); $('#box_title').empty(); $('#spinner').show();" class="btn btn-danger" type="submit" name="endpoint" value="nack">
                                         NACK
                                     </button>
                                 </form>
@@ -131,32 +131,68 @@
         }
     </script>
     <script>
-        $("#channelid").click(function() {
+        $("#submitPoll").click(function() {
           var data = {};
-          data.Text = $("#form-field").val();
+          data.Text = $("#channelid").val();
           data.isProcessed = false;
 
-          localStorage.setItem("form-field", JSON.stringify(data));
+          localStorage.setItem("channelid", JSON.stringify(data));
         });
 
-        $("#payload").click(function() {
+        $("#submitAck").click(function() {
           var data = {};
-          data.Text = $("#form-field").val();
+          data.Text = $("#channelid").val();
           data.isProcessed = false;
 
-          localStorage.setItem("form-field", JSON.stringify(data));
+          localStorage.setItem("channelid", JSON.stringify(data));
+        });
+
+        $("#submitNack").click(function() {
+          var data = {};
+          data.Text = $("#channelid").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("channelid", JSON.stringify(data));
+        });
+
+        $("#submitPayload").click(function() {
+          var data = {};
+          data.Text = $("#payload").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("payload", JSON.stringify(data));
+        });
+
+        $("#getFilter").click(function() {
+          var data = {};
+          data.Text = $("#payload").val();
+          data.isProcessed = false;
+
+          localStorage.setItem("payload", JSON.stringify(data));
         });
 
         //On load
-        var data = localStorage.getItem("form-field");
+        var data = localStorage.getItem("channelid");
         var dataObject;
 
         if (data != null) //There's stored data
         {
           dataObject = JSON.parse(data);
-          $("#form-field").val(dataObject.Text)
+          $("#channelid").val(dataObject.Text)
 
-          localStorage.removeItem("form-field"); //Remove data, otherwise it'll be there for a long time.
+          localStorage.removeItem("channelid"); //Remove data, otherwise it'll be there for a long time.
+        }
+
+        //On load
+        var data = localStorage.getItem("payload");
+        var dataObject;
+
+        if (data != null) //There's stored data
+        {
+          dataObject = JSON.parse(data);
+          $("#payload").val(dataObject.Text)
+
+          localStorage.removeItem("payload"); //Remove data, otherwise it'll be there for a long time.
         }
     </script>
 {% endblock %}

@@ -270,7 +270,7 @@ def refresh_tokens():
             client_id=client.get('client_id', ''),
             refresh_token=refresh_token,
             token_url=TOKEN_URL,
-            verify=True,
+            verify=False,
             client_secret=client.get('client_secret', ''),
             auth=None
         )
@@ -312,7 +312,7 @@ def revoke_access_token():
         'client_secret': client.get('client_secret', '')
     }
     with requests.Session() as s:
-        s.verify = True
+        s.verify = False
         s.auth = None
         s.headers = '{Content-Type: application/x-www-form-urlencoded}'
         try:
@@ -353,7 +353,7 @@ def revoke_refresh_token():
         'client_secret': client.get('client_secret', '')
     }
     with requests.Session() as s:
-        s.verify = True
+        s.verify = False
         s.auth = None
         s.headers = '{Content-Type: application/x-www-form-urlencoded}'
         try:
@@ -451,51 +451,60 @@ def callback():
     error = request.args.get('error', None)
     error_description = request.args.get('error_description', '')
     oauth_state = session.get('oauth_state', '')
-    if oauth_state == uuid.UUID(state):
-        idp_ = OAuth2Session(
-            client_id=client.get('client_id', ''),
-            redirect_uri=client.get('redirect_uri', ''),
-            state=state
-        )
-        idp_.auth = None
-        idp_.verify = False
-        try:
-            token = idp_.fetch_token(
-                token_url=TOKEN_URL,
-                client_secret=client.get('client_secret', ''),
+    try:
+        if oauth_state == uuid.UUID(state):
+            idp_ = OAuth2Session(
                 client_id=client.get('client_id', ''),
-                code=code,
-                auth=False,
-                verify=True
+                redirect_uri=client.get('redirect_uri', ''),
+                state=state
             )
-        except Exception as _e:
-            print('Exception occurred: {}'.format(_e))
-            print(error)
-            db_ = OauthDB()
-            db_.delete_activation()
-            db_.delete_tokens()
-            return render_template(
-                'pages/authorization.html',
-                tokens=db_.tokens,
-                oauth={},
-                alert="danger",
-                msg="{}: {}".format(error, error_description)
-            )
-        else:
-            session['oauth_token'] = token
-            db_ = OauthDB()
-            client = db_.get_activation()
-            client.update({'activated': True})
-            db_.update_activation(client)
-            db_.update_oauth(token)
-            return redirect('/authorization')
-    return render_template(
-        'pages/authorization.html',
-        tokens=db_.tokens,
-        oauth={},
-        alert="danger",
-        msg="STATE MISMATCH: Possible CSRF detected!"
-    )
+            idp_.auth = None
+            idp_.verify = False
+            try:
+                token = idp_.fetch_token(
+                    token_url=TOKEN_URL,
+                    client_secret=client.get('client_secret', ''),
+                    client_id=client.get('client_id', ''),
+                    code=code,
+                    auth=False,
+                    verify=False
+                )
+            except Exception as _e:
+                print('Exception occurred: {}'.format(_e))
+                print(error)
+                db_ = OauthDB()
+                db_.delete_activation()
+                db_.delete_tokens()
+                return render_template(
+                    'pages/authorization.html',
+                    tokens=db_.tokens,
+                    oauth={},
+                    alert="danger",
+                    msg="{}: {}".format(error, error_description)
+                )
+            else:
+                session['oauth_token'] = token
+                db_ = OauthDB()
+                client = db_.get_activation()
+                client.update({'activated': True})
+                db_.update_activation(client)
+                db_.update_oauth(token)
+                return redirect('/authorization')
+        return render_template(
+            'pages/authorization.html',
+            tokens=db_.tokens,
+            oauth={},
+            alert="danger",
+            msg="STATE MISMATCH: Possible CSRF detected!"
+        )
+    except Exception as e:
+        return render_template(
+            'pages/authorization.html',
+            tokens=db_.tokens,
+            oauth={},
+            alert="danger",
+            msg="{}".format(e)
+        )
 
 
 @app.route('/queryexplorer', methods=['POST', 'GET'])
@@ -550,7 +559,7 @@ def queryexplorer():
     if starttime and endtime:
         ls = LoggingService(
             url=APIGW_URL,
-            verify=True,
+            verify=False,
             headers={'Authorization': 'Bearer {}'.format(_token)}
         )
 
@@ -688,7 +697,7 @@ def directoryexplorer():
     # Create Logging Service instance
     ds = DirectorySyncService(
         url=APIGW_URL,
-        verify=True,
+        verify=False,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
 
@@ -757,7 +766,7 @@ def directoryexplorer():
 @app.route('/eventexplorer', methods=['POST', 'GET'])
 @login_required
 def eventexplorer():
-    channel_id = request.form.get('channel', '')
+    channel_id = request.form.get('channel', 'event-filter')
     endpoint = request.form.get('endpoint', '')
     payload = request.form.get('payload', None)
     from pancloud.event import EventService
@@ -769,7 +778,7 @@ def eventexplorer():
         _token = ''
     es = EventService(
         url=APIGW_URL,
-        verify=True,
+        verify=False,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
     dispatcher = {
