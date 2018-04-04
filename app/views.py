@@ -913,7 +913,7 @@ def check_for_updates():
     try:
         o = g.get_organization('PaloAltoNetworks')
         r = o.get_repo('apiexplorer')
-    except ssl.SSLError as e:
+    except Exception as e:
         return render_template(
             'pages/updates.html',
             msg="{}".format(e),
@@ -938,6 +938,70 @@ def check_for_updates():
                 'pages/updates.html',
                 msg="No Updates Available",
                 status="success"
+            )
+
+
+@app.route('/update', methods=['GET'])
+@login_required
+def update():
+    import requests
+    import zipfile
+    from shutil import copyfile
+    import subprocess
+    old = '/opt/apiexplorer.old'
+    current = '/opt/apiexplorer'
+    master = '/opt/apiexplorer-master'
+    appdb = '/opt/apiexplorer.old/app/db/app.json'
+    securitydb = '/opt/apiexplorer.old/app/db/security.db'
+    zip_url = 'https://github.com/PaloAltoNetworks/apiexplorer/archive/master.zip'
+    try:
+        r = requests.get(zip_url, stream=True)
+        with open("/tmp/apiexplorer.zip", "wb") as f:
+            f.write(r.content)
+    except Exception as e:
+        return render_template(
+            'pages/updates.html',
+            msg="{}".format(e),
+            status="danger"
+        )
+    else:
+        os.rename(current, old)
+        zip_ref = zipfile.ZipFile('/tmp/apiexplorer.zip', 'r')
+        zip_ref.extractall('/opt')
+        zip_ref.close()
+        os.rename(master, current)
+        copyfile(appdb, '/opt/apiexplorer/app/db/app.json')
+        copyfile(securitydb, '/opt/apiexplorer/app/db/security.json')
+        os.remove('/tmp/apiexplorer.zip')
+        os.remove(old)
+        return render_template(
+            'pages/updates.html',
+            msg="Done",
+            status="success"
+        )
+
+
+@app.route('/restart_process')
+@login_required
+def restart_process():
+    import subprocess
+    if 'pname' in request.args:
+        pname = request.args['pname']
+        include_list = ['gunicorn']
+        if pname in include_list:
+            subprocess.call(
+                ["/usr/bin/sudo", "/usr/sbin/service", "{}".format(pname), "restart"], shell=False
+            )
+            return render_template(
+                'pages/updates.html',
+                msg="Done",
+                status="success"
+            )
+        else:
+            return render_template(
+                'pages/updates.html',
+                msg="Unsupported process",
+                status="danger"
             )
 
 

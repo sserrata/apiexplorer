@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9a577a4037dd23bacf6e2723c3beec18c1cce4980a0c90df36e96bd9381a5b1a"
+            "sha256": "5b26aa203ba7ce742bf0495dc1746af8706645ed4b49a25fb8adaf693d9d2c1c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -201,21 +201,6 @@
             ],
             "version": "==0.14.2"
         },
-        "gitdb2": {
-            "hashes": [
-                "sha256:b60e29d4533e5e25bb50b7678bbc187c8f6bcff1344b4f293b2ba55c85795f09",
-                "sha256:cf9a4b68e8c4da8d42e48728c944ff7af2d8c9db303ac1ab32eac37aa4194b0e"
-            ],
-            "version": "==2.0.3"
-        },
-        "gitpython": {
-            "hashes": [
-                "sha256:05069e26177c650b3cb945dd543a7ef7ca449f8db5b73038b465105673c1ef61",
-                "sha256:c47cc31af6e88979c57a33962cbc30a7c25508d74a1b3a19ec5aa7ed64b03129"
-            ],
-            "index": "pypi",
-            "version": "==2.1.9"
-        },
         "gunicorn": {
             "hashes": [
                 "sha256:75af03c99389535f218cc596c7de74df4763803f7b63eb09d77e92b3956b36c6",
@@ -332,13 +317,6 @@
                 "sha256:832dc0e10feb1aa2c68dcc57dbb658f1c7e65b9b61af69048abc87a2db00a0eb"
             ],
             "version": "==1.11.0"
-        },
-        "smmap2": {
-            "hashes": [
-                "sha256:b78ee0f1f5772d69ff50b1cbdb01b8c6647a8354f02f23b488cf4b2cfc923956",
-                "sha256:c7530db63f15f09f8251094b22091298e82bf6c699a6b8344aaaef3f2e1276c3"
-            ],
-            "version": "==2.0.3"
         },
         "speaklater": {
             "hashes": [

@@ -15,8 +15,7 @@ bcrypt = "*"
 tinydb = "*"
 tinymongo = "*"
 gunicorn = "*"
-pygithub = "*"
-gitpython = "*"
+PyGithub = "*"
 
 
 [dev-packages]

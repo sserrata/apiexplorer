@@ -30,16 +30,20 @@
      <div class="container-fluid">
         <div class="col-md-12">
             <div class="row">
-                <a class="btn btn-primary" href="/check_for_updates" data-toggle="tooltip" data-placement="right" title="Check for Updates">
-                    <i class="fas fa-sync-alt"></i>
+                <a class="btn btn-primary" href="/check_for_updates">
+                    Check for Updates <i class="fas fa-sync-alt"></i>
                 </a>
             </div>
-            {% if mgs|length > 0 and status == "warning" %}
+            {% if msg|length > 0 and status == "warning" %}
+            <hr>
             <div class="row">
-                <a class="btn btn-success" href="/update" data-toggle="tooltip" data-placement="right" title="Update API Explorer">
-                    Update
+                <a class="btn btn-success" href="update" data-toggle="tooltip" data-placement="right" title="Install Latest Package">
+                    Update API Explorer
                 </a>
             </div>
+            <a data-toggle="tooltip" title="Restarts Gunicorn, the WSGI micro-web server. Perform this after installing updates. Note that API Explorer may become temporarily unavailable." class="restart" data-type="restart Gunicorn" href="/restart_process?pname=gunicorn">
+                <button class="btn btn-success btn-xs" role="button">Restart Gunicorn</button>
+            </a>
             {% endif %}
             <hr>
         </div>
