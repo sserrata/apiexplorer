@@ -987,7 +987,8 @@ def update():
         copyfile(appdb, '/opt/apiexplorer/app/db/app.json')
         copyfile(securitydb, '/opt/apiexplorer/app/db/security.json')
         os.remove('/tmp/apiexplorer.zip')
-        os.rmdir(old)
+        import shutil
+        shutil.rmtree(old, ignore_errors=True)
         import subprocess
         user = os.getlogin()
         subprocess.call(
