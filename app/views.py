@@ -83,6 +83,7 @@ class OauthDB:
         self.app = self.connection.app
         self.oauth = self.app.oauth
         self.activation = self.app.activation
+        self.settings = self.app.settings
 
     @property
     def tokens(self):
@@ -206,6 +207,9 @@ class OauthDB:
     def get_activation(self):
         return self.activation.find_one({'_id': 1}) or {}
 
+    def get_settings(self):
+        return self.settings.find_one({'_id': 1}) or {}
+
     def update_api_key(self, key):
         try:
             self.activation.insert_one(
@@ -226,7 +230,7 @@ class OauthDB:
 
     def update_settings(self, settings_):
         try:
-            self.activation.insert_one(
+            self.settings.insert_one(
                 {
                     '_id': 1,
                     'auth_base_url': settings_.get('auth_base_url', ''),
@@ -238,15 +242,18 @@ class OauthDB:
                 }
             )
         except DuplicateKeyError:
-            self.update_activation(
+            self.settings.update_one(
+                {'_id': 1},
                 {
-                    '_id': 1,
-                    'auth_base_url': settings_.get('auth_base_url', ''),
-                    'token_url': settings_.get('token_url', ''),
-                    'revoke_token_url': settings_.get(
-                        'revoke_token_url', ''
-                    ),
-                    'apigw_url': settings_.get('apigw_url', '')
+                    '$set': {
+                        'auth_base_url': settings_.get('auth_base_url',
+                                                       ''),
+                        'token_url': settings_.get('token_url', ''),
+                        'revoke_token_url': settings_.get(
+                            'revoke_token_url', ''
+                        ),
+                        'apigw_url': settings_.get('apigw_url', '')
+                    }
                 }
             )
 
@@ -310,11 +317,12 @@ def refresh_tokens():
     refresh_token = oauth['refresh_token']
     idp_ = OAuth2Session()
     activation = db_.get_activation()
+    settings_ = db_.get_settings()
     try:
         token = idp_.refresh_token(
             client_id=client.get('client_id', ''),
             refresh_token=refresh_token,
-            token_url=activation.get('token_url', TOKEN_URL),
+            token_url=settings_.get('token_url', TOKEN_URL),
             verify=False,
             client_secret=client.get('client_secret', ''),
             auth=None
@@ -350,6 +358,7 @@ def revoke_access_token():
     db_ = OauthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
     activation = db_.get_activation()
+    settings_ = db_.get_settings()
     body = {
         'client_id': activation.get('client_id', ''),
         'token': activation.get('access_token', ''),
@@ -362,7 +371,7 @@ def revoke_access_token():
         s.headers = '{Content-Type: application/x-www-form-urlencoded}'
         try:
             s.post(
-                url=activation.get('revoke_token_url', REVOKE_TOKEN_URL),
+                url=settings_.get('revoke_token_url', REVOKE_TOKEN_URL),
                 data=body
             )
         except Exception as _e:
@@ -391,6 +400,7 @@ def revoke_refresh_token():
     db_ = OauthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
     activation = db_.get_activation()
+    settings_ = db_.get_settings()
     body = {
         'client_id': activation.get('client_id', ''),
         'token': activation.get('refresh_token', ''),
@@ -403,7 +413,7 @@ def revoke_refresh_token():
         s.headers = '{Content-Type: application/x-www-form-urlencoded}'
         try:
             s.post(
-                url=activation.get('revoke_token_url', REVOKE_TOKEN_URL),
+                url=settings_.get('revoke_token_url', REVOKE_TOKEN_URL),
                 data=body
             )
         except Exception as _e:
@@ -466,6 +476,7 @@ def idp():
     db_ = OauthDB()
     db_.update_activation(client)
     activation = db_.get_activation()
+    settings_ = db_.get_settings()
 
     _state = uuid.uuid4()
     idp_ = OAuth2Session(
@@ -477,7 +488,7 @@ def idp():
     idp_.auth = False
     idp_.verify = False
     authorization_url, state = idp_.authorization_url(
-        activation.get('auth_base_url', AUTHORIZATION_BASE_URL),
+        settings_.get('auth_base_url', AUTHORIZATION_BASE_URL),
         instance_id=instance_id,
         region=region
     )
@@ -490,6 +501,7 @@ def callback():
     """Retrieve an access token."""
     db_ = OauthDB()
     activation = db_.get_activation()
+    settings_ = db_.get_settings()
     code = request.args.get('code', None)
     state = request.args.get('state', None)
     error = request.args.get('error', None)
@@ -506,7 +518,7 @@ def callback():
             idp_.verify = False
             try:
                 token = idp_.fetch_token(
-                    token_url=activation.get('token_url', TOKEN_URL),
+                    token_url=settings_.get('token_url', TOKEN_URL),
                     client_secret=activation.get('client_secret', ''),
                     client_id=activation.get('client_id', ''),
                     code=code,
@@ -557,6 +569,7 @@ def queryexplorer():
     db_ = OauthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
     activation = db_.get_activation()
+    settings_ = db_.get_settings()
     try:
         _token = oauth.get('access_token', '')
     except AttributeError:
@@ -603,7 +616,7 @@ def queryexplorer():
     start = time.time()
     if starttime and endtime:
         ls = LoggingService(
-            url=activation.get('apigw_url', APIGW_URL),
+            url=settings_.get('apigw_url', APIGW_URL),
             verify=False,
             headers={'Authorization': 'Bearer {}'.format(_token)}
         )
@@ -735,6 +748,7 @@ def directoryexplorer():
     db_ = OauthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
     activation = db_.get_activation()
+    settings_ = db_.get_settings()
     try:
         _token = oauth.get('access_token', '')
     except AttributeError:
@@ -742,7 +756,7 @@ def directoryexplorer():
 
     # Create Logging Service instance
     ds = DirectorySyncService(
-        url=activation.get('apigw_url', APIGW_URL),
+        url=settings_.get('apigw_url', APIGW_URL),
         verify=False,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
@@ -819,12 +833,13 @@ def eventexplorer():
     db_ = OauthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
     activation = db_.get_activation()
+    settings_ = db_.get_settings()
     try:
         _token = oauth.get('access_token', '')
     except AttributeError:
         _token = ''
     es = EventService(
-        url=activation.get('apigw_url', APIGW_URL),
+        url=settings_.get('apigw_url', APIGW_URL),
         verify=False,
         headers={'Authorization': 'Bearer {}'.format(_token)}
     )
@@ -884,11 +899,11 @@ def settings():
     settings_['apigw_url'] = apigw_url or APIGW_URL
     db_.update_settings(settings_)
 
-    activation = db_.get_activation()
+    settings = db_.get_settings()
 
     return render_template(
         'pages/settings.html',
-        activation=activation
+        settings=settings
     )
 
 
@@ -947,7 +962,6 @@ def update():
     import requests
     import zipfile
     from shutil import copyfile
-    import subprocess
     old = '/opt/apiexplorer.old'
     current = '/opt/apiexplorer'
     master = '/opt/apiexplorer-master'
