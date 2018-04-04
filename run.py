@@ -77,7 +77,8 @@ if __name__ == '__main__':
             context = 'adhoc'
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         app.run(
-            host='0.0.0.0', port=443, debug=True, ssl_context=context
+            host='0.0.0.0', port=443, debug=True, ssl_context=context,
+            threaded=True
         )
     else:
         options = {
