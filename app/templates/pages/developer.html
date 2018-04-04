@@ -1,0 +1,94 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+      <h1>
+        Generate API Key
+      </h1>
+    </section>
+
+    <section class="content-header">
+        <div class="col-md-6">
+        {% if msg|length > 0 %}
+        <div class="alert alert-{{ status }} alert-dismissible" id="msg_alert" style="width: 300px">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <h4><i class="icon fas fa-info-circle"></i> {{ msg }}</h4>
+        </div>
+        {% endif %}
+        </div>
+    </section>
+
+    <!-- Main content -->
+    <section class="content">
+    <div id="page-wrapper">
+         <div class="container-fluid">
+             <div class="row">
+                <div class="col-md-12">
+                    <form action="generate_api_key" method="post" id="authorize">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <label>Username <small>*</small></label>
+                                <input type="text" class="form-control" name="email" autocomplete="off" size="50" value="" placeholder="username" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Password <small>*</small></label>
+                                <input type="password" class="form-control" size="50" name="password" autocomplete="off" value="" placeholder="password" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-primary" data-toggle="tooltip" data-placement="right" title="Generate API Key" type="submit">
+                                Generate API Key
+                            </button>
+                        </div>
+                    </form>
+                    <hr>
+                </div>
+             </div>
+             {% if key %}
+             <div class="row">
+                <div class="col-md-6">
+                    <div class="box box-primary">
+                      <div class="box-header with-border">
+                        <h3 class="box-title"></h3>
+                      </div>
+                      <div class="box-body">
+                            <div class="table-responsive" id="oauth_body_div">
+                                <table class="table table-bordered table-striped" id="oauth">
+                                    <tbody>
+                                        <tr>
+                                            <td>API Key</td>
+                                            <td>
+                                                <input id="api_key" type="password" data-toggle="password" class="form-control" value="{{ key }}" readonly>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                      </div>
+                      <div class="overlay" id="spinner" style="display:none;">
+                          <i class="fa fa-sync-alt fa-2x fa-spin" style="color:#214558;"></i>
+                      </div>
+                    </div>
+                </div>
+            </div>
+             {% endif %}
+         </div>
+    </div>
+    </section>
+</div>
+
+{% endblock %}
+
+{% block pagescript %}
+
+    <!-- DataTables JavaScript -->
+    <script src="/js/datatables.min.js"></script>
+    <script src="/js/select2.min.js"></script>
+    <script src="/js/bootstrap-show-password.min.js"></script>
+    <script src="/js/moment.min.js"></script>
+{% endblock %}

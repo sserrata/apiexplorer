@@ -76,6 +76,7 @@
             </div>
             <hr>
             {% if activation %}
+            {% if activation.scope %}
             <div class="row">
                 <div class="col-lg-6">
                     <div class="box box-primary">
@@ -86,6 +87,7 @@
                             <div class="table-responsive" id="activation_div">
                                 <table class="table table-bordered table-striped" id="activation_info">
                                     <tbody>
+                                        {% if activation.scope %}
                                         <tr>
                                             <td>Scope</td>
                                             {% set scopes = activation.scope.split(' ') %}
@@ -99,6 +101,7 @@
                                             <td>{{ activation.scope }}</td>
                                             {% endif %}
                                         </tr>
+                                        {% endif %}
                                         <tr>
                                             <td>Instance ID</td>
                                             <td>{{ activation.instance_id }}</td>
@@ -143,6 +146,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
             {% endif %}
             <div class="row">
                 <div class="col-lg-12">
