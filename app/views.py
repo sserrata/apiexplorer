@@ -979,15 +979,15 @@ def update():
             status="danger"
         )
     else:
-        os.rename(current, old)
+        import shutil
+        shutil.move(current, old)
         zip_ref = zipfile.ZipFile('/tmp/apiexplorer.zip', 'r')
         zip_ref.extractall('/opt')
         zip_ref.close()
-        os.rename(master, current)
+        shutil.move(master, current)
         copyfile(appdb, '/opt/apiexplorer/app/db/app.json')
         copyfile(securitydb, '/opt/apiexplorer/app/db/security.json')
         os.remove('/tmp/apiexplorer.zip')
-        import shutil
         shutil.rmtree(old, ignore_errors=True)
         import subprocess
         user = os.getlogin()
