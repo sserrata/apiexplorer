@@ -986,13 +986,17 @@ def update():
             zip_ref.extractall('/opt')
             zip_ref.close()
             shutil.move(master, current)
-            OLD_DBPATH = "/opt/apiexplorerdb"
-            NEW_DBPATH = "/opt/apiexplorerdb"
+            OLD_DBPATH = "DBPATH = '/opt/apiexplorer/app' + '/db'"
+            NEW_DBPATH = "DBPATH = '/opt/apiexplorerdb' + '/db'"
             subprocess.call(
                 ["/usr/bin/sed", "-i", "-e",
-                 "'s;{};{};g'".format(OLD_DBPATH, NEW_DBPATH),
+                 '"s;{};{};g"'.format(OLD_DBPATH, NEW_DBPATH),
                  "/opt/apiexplorerdb/views.py"]
             )
+            try:
+                os.remove('/opt/apiexplorer/app/views.py-e')
+            except FileNotFoundError:
+                pass
             os.remove('/tmp/apiexplorer.zip')
             shutil.rmtree(old, ignore_errors=True)
 
