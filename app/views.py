@@ -986,11 +986,11 @@ def update():
             zip_ref.extractall('/opt')
             zip_ref.close()
             shutil.move(master, current)
-            OLD_DBPATH = "DBPATH = '/opt/apiexplorer/app' + '/db'"
-            NEW_DBPATH = "DBPATH = '/opt/apiexplorerdb' + '/db'"
+            OLD_DBPATH = "/opt/apiexplorer/app"
+            NEW_DBPATH = "/opt/apiexplorerdb"
             subprocess.call(
                 ["/usr/bin/sudo", "/usr/bin/sed", "-i", "-e",
-                 '"s;{};{};g"'.format(OLD_DBPATH, NEW_DBPATH),
+                 '"s;{};{};"'.format(OLD_DBPATH, NEW_DBPATH),
                  "/opt/apiexplorer/app/views.py"]
             )
             try:
