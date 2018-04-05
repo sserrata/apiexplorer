@@ -993,8 +993,10 @@ def update():
         import pwd
         user = pwd.getpwuid(os.geteuid()).pw_name
         subprocess.call(
-            ["/usr/bin/chown", "-R", "{user}:{user}".format(user=user),
-             current], shell=False
+            ["/usr/bin/chown", "-R", "{user}:{user}".format(user=user), current], shell=False
+        )
+        subprocess.call(
+            ["/usr/bin/sudo", "/usr/sbin/service", "gunicorn", "restart"], shell=False
         )
         return render_template(
             'pages/updates.html',
