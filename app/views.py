@@ -986,13 +986,6 @@ def update():
             zip_ref.extractall('/opt')
             zip_ref.close()
             shutil.move(master, current)
-            OLD_DBPATH = "/opt/apiexplorer/app"
-            NEW_DBPATH = "/opt/apiexplorerdb"
-            subprocess.call(
-                ["/usr/bin/sudo", "/usr/bin/sed", "-i", "-e",
-                 '"s;{};{};"'.format(OLD_DBPATH, NEW_DBPATH),
-                 "/opt/apiexplorer/app/views.py"]
-            )
             try:
                 os.remove('/opt/apiexplorer/app/views.py-e')
             except FileNotFoundError:
@@ -1003,6 +996,13 @@ def update():
             user = pwd.getpwuid(os.geteuid()).pw_name
             subprocess.call(
                 ["/usr/bin/chown", "-R", "{user}:{user}".format(user=user), current], shell=False
+            )
+            OLD_DBPATH = "/opt/apiexplorer/app"
+            NEW_DBPATH = "/opt/apiexplorerdb"
+            subprocess.call(
+                ["/usr/bin/sed", "-i", "-e",
+                 "s;{};{};".format(OLD_DBPATH, NEW_DBPATH),
+                 "/opt/apiexplorer/app/views.py"]
             )
             subprocess.call(
                 ["/usr/bin/sudo", "/usr/sbin/service", "gunicorn", "restart"], shell=False
