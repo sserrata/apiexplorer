@@ -56,4 +56,17 @@
     <script src="/js/select2.min.js"></script>
     <script src="/js/bootstrap-show-password.min.js"></script>
     <script src="/js/moment.min.js"></script>
+
+    <script>
+        window.setTimeout(function() {
+            $(".alert").fadeTo(500, 0).slideUp(200, function(){
+                $(this).alert('close');
+            });
+        }, 1000);
+    </script>
+    <script>
+        $('#msg_alert').on('closed.bs.alert', function () {
+            window.location.replace("/updates");
+        })
+    </script>
 {% endblock %}
