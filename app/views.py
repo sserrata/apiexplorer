@@ -18,6 +18,7 @@ log = logging.getLogger('requests_oauthlib')
 log.addHandler(logging.StreamHandler(sys.stdout))
 log.setLevel(logging.DEBUG)
 
+DBPATH = os.path.abspath(os.path.dirname(__file__)) + '/db'
 app.jinja_env.cache = {}
 app.config['SECRET_KEY'] = '8Q@U99a3wd8NGuY*nRTJ#WAk4r'
 app.config['PERMANENT_SESSION_LIFETIME'] = 1200
@@ -36,8 +37,8 @@ app.jinja_env.trim_blocks = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['WTF_CSRF_ENABLED'] = False
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + basedir + '/db/security.db'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + DBPATH + '/security.db'
 db = SQLAlchemy(app)
 
 # Define models
@@ -79,7 +80,7 @@ security = Security(app, user_datastore)
 class OauthDB:
     """An Oauth database instance."""
     def __init__(self):
-        self.connection = TinyMongoClient(basedir + '/db/')
+        self.connection = TinyMongoClient(DBPATH)
         self.app = self.connection.app
         self.oauth = self.app.oauth
         self.activation = self.app.activation
@@ -1036,7 +1037,6 @@ def get_procs():
     master = ['nginx']
     processes = []
     for p in psutil.process_iter():
-        print(p.name())
         if p.name() in master:
             processes.append(p.name())
     return processes
