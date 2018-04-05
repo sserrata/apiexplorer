@@ -1007,24 +1007,26 @@ def update():
 @login_required
 def restart_process():
     import subprocess
-    if 'pname' in request.args:
-        pname = request.args['pname']
-        include_list = ['gunicorn']
-        if pname in include_list:
-            subprocess.call(
-                ["/usr/bin/sudo", "/usr/sbin/service", "{}".format(pname), "restart"], shell=False
-            )
-            return render_template(
-                'pages/updates.html',
-                msg="Done",
-                status="success"
-            )
-        else:
-            return render_template(
-                'pages/updates.html',
-                msg="Unsupported process",
-                status="danger"
-            )
+    try:
+        if 'pname' in request.args:
+            pname = request.args['pname']
+            include_list = ['gunicorn']
+            if pname in include_list:
+                subprocess.call(
+                    ["/usr/bin/sudo", "/usr/sbin/service", "{}".format(pname), "restart"], shell=False
+                )
+    except Exception as e:
+        return render_template(
+            'pages/updates.html',
+            msg="{}".format(e),
+            status="danger"
+        )
+    else:
+        return render_template(
+            'pages/updates.html',
+            msg="Success",
+            status="success"
+        )
 
 
 def get_procs():
