@@ -977,35 +977,43 @@ def update():
             status="danger"
         )
     else:
-        import shutil
-        import fileinput
-        import re
-        shutil.move(current, old)
-        zip_ref = zipfile.ZipFile('/tmp/apiexplorer.zip', 'r')
-        zip_ref.extractall('/opt')
-        zip_ref.close()
-        shutil.move(master, current)
-        OLD_DBPATH = "DBPATH = os.path.abspath(os.path.dirname(__file__)) + '/db'"
-        NEW_DBPATH = "DBPATH = '/opt/apiexplorerdb' + '/db'"
-        for line in fileinput.input("/opt/apiexplorer/app/views.py",
-                                    inplace=True):
-            print(line.replace(OLD_DBPATH, NEW_DBPATH), end="")
-        os.remove('/tmp/apiexplorer.zip')
-        shutil.rmtree(old, ignore_errors=True)
-        import subprocess
-        import pwd
-        user = pwd.getpwuid(os.geteuid()).pw_name
-        subprocess.call(
-            ["/usr/bin/chown", "-R", "{user}:{user}".format(user=user), current], shell=False
-        )
-        subprocess.call(
-            ["/usr/bin/sudo", "/usr/sbin/service", "gunicorn", "restart"], shell=False
-        )
-        return render_template(
-            'pages/updates.html',
-            msg="Success",
-            status="success"
-        )
+        try:
+            import shutil
+            import subprocess
+            import pwd
+            shutil.move(current, old)
+            zip_ref = zipfile.ZipFile('/tmp/apiexplorer.zip', 'r')
+            zip_ref.extractall('/opt')
+            zip_ref.close()
+            shutil.move(master, current)
+            OLD_DBPATH = "DBPATH = os.path.abspath(os.path.dirname(__file__)) + '/db'"
+            NEW_DBPATH = "DBPATH = '/opt/apiexplorerdb' + '/db'"
+            subprocess.call(
+                ["sed", "-i", "-e",
+                 's/{}/{}/g'.format(OLD_DBPATH, NEW_DBPATH),
+                 "/opt/apiexplorer/app/views.py"]
+            )
+            os.remove('/tmp/apiexplorer.zip')
+            shutil.rmtree(old, ignore_errors=True)
+
+            user = pwd.getpwuid(os.geteuid()).pw_name
+            subprocess.call(
+                ["/usr/bin/chown", "-R", "{user}:{user}".format(user=user), current], shell=False
+            )
+            subprocess.call(
+                ["/usr/bin/sudo", "/usr/sbin/service", "gunicorn", "restart"], shell=False
+            )
+            return render_template(
+                'pages/updates.html',
+                msg="Success",
+                status="success"
+            )
+        except Exception as e:
+            return render_template(
+                'pages/updates.html',
+                msg="{}".format(e),
+                status="danger"
+            )
 
 
 @app.route('/restart_process')
