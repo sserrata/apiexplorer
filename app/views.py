@@ -981,13 +981,19 @@ def update():
         )
     else:
         import shutil
+        import re
         shutil.move(current, old)
         zip_ref = zipfile.ZipFile('/tmp/apiexplorer.zip', 'r')
         zip_ref.extractall('/opt')
         zip_ref.close()
         shutil.move(master, current)
-        copyfile(appdb, '/opt/apiexplorer/app/db/app.json')
-        copyfile(securitydb, '/opt/apiexplorer/app/db/security.json')
+        OLD_DBPATH = 'os.path.abspath(os.path.dirname(__file__))'
+        NEW_DBPATH = '/opt/apiexplorerdb'
+        with open('app/views.py') as f:
+            s = f.read()
+        with open('app/views.py', 'w') as f:
+            s = re.sub(OLD_DBPATH, NEW_DBPATH, s)
+            f.write(s)
         os.remove('/tmp/apiexplorer.zip')
         shutil.rmtree(old, ignore_errors=True)
         import subprocess
