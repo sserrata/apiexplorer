@@ -991,7 +991,7 @@ def update():
             subprocess.call(
                 ["/usr/bin/sed", "-i", "-e",
                  '"s;{};{};g"'.format(OLD_DBPATH, NEW_DBPATH),
-                 "/opt/apiexplorerdb/views.py"]
+                 "/opt/apiexplorer/app/views.py"]
             )
             try:
                 os.remove('/opt/apiexplorer/app/views.py-e')
