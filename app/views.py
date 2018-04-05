@@ -990,7 +990,8 @@ def update():
         os.remove('/tmp/apiexplorer.zip')
         shutil.rmtree(old, ignore_errors=True)
         import subprocess
-        user = os.getlogin()
+        import pwd
+        user = pwd.getpwuid(os.geteuid()).pw_name
         subprocess.call(
             ["/usr/bin/chown", "-R", "{user}:{user}".format(user=user),
              current], shell=False
