@@ -962,12 +962,9 @@ def check_for_updates():
 def update():
     import requests
     import zipfile
-    from shutil import copyfile
     old = '/opt/apiexplorer.old'
     current = '/opt/apiexplorer'
     master = '/opt/apiexplorer-master'
-    appdb = '/opt/apiexplorer.old/app/db/app.json'
-    securitydb = '/opt/apiexplorer.old/app/db/security.db'
     zip_url = 'https://github.com/PaloAltoNetworks/apiexplorer/archive/master.zip'
     try:
         r = requests.get(zip_url, stream=True)
@@ -981,19 +978,18 @@ def update():
         )
     else:
         import shutil
+        import fileinput
         import re
         shutil.move(current, old)
         zip_ref = zipfile.ZipFile('/tmp/apiexplorer.zip', 'r')
         zip_ref.extractall('/opt')
         zip_ref.close()
         shutil.move(master, current)
-        OLD_DBPATH = 'os.path.abspath(os.path.dirname(__file__))'
-        NEW_DBPATH = '/opt/apiexplorerdb'
-        with open('/opt/apiexplorer/app/views.py') as f:
-            s = f.read()
-        with open('/opt/apiexplorer/app/views.py', 'w') as f:
-            s = re.sub(OLD_DBPATH, NEW_DBPATH, s)
-            f.write(s)
+        OLD_DBPATH = "DBPATH = os.path.abspath(os.path.dirname(__file__)) + '/db'"
+        NEW_DBPATH = "DBPATH = '/opt/apiexplorerdb' + '/db'"
+        for line in fileinput.input("/opt/apiexplorer/app/views.py",
+                                    inplace=True):
+            print(line.replace(OLD_DBPATH, NEW_DBPATH), end="")
         os.remove('/tmp/apiexplorer.zip')
         shutil.rmtree(old, ignore_errors=True)
         import subprocess
