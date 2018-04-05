@@ -989,7 +989,7 @@ def update():
             OLD_DBPATH = "DBPATH = '/opt/apiexplorer/app' + '/db'"
             NEW_DBPATH = "DBPATH = '/opt/apiexplorerdb' + '/db'"
             subprocess.call(
-                ["/usr/bin/sed", "-i", "-e",
+                ["/usr/bin/sudo", "/usr/bin/sed", "-i", "-e",
                  '"s;{};{};g"'.format(OLD_DBPATH, NEW_DBPATH),
                  "/opt/apiexplorer/app/views.py"]
             )
