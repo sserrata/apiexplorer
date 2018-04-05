@@ -1027,6 +1027,17 @@ def restart_process():
             )
 
 
+def get_procs():
+    import psutil
+    master = ['nginx']
+    processes = []
+    for p in psutil.process_iter():
+        print(p.name())
+        if p.name() in master:
+            processes.append(p.name())
+    return processes
+
+
 @app.route('/get_tokens', methods=['GET'], endpoint='get_tokens')
 @auth_required('basic', 'session', 'token')
 def get_tokens():
@@ -1113,7 +1124,8 @@ def get_global_variables():
             activated = False
     except AttributeError:
         activated = False
-    return dict(activated=activated)
+    nginx = get_procs()
+    return dict(activated=activated, nginx=nginx)
 
 
 @security.login_context_processor

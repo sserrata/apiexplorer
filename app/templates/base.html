@@ -47,6 +47,13 @@
 
           <div class="navbar-custom-menu">
             <ul class="nav navbar-nav">
+                {% if nginx|length > 0 %}
+                <li class="dropdown" data-toggle="tooltip" data-placement="bottom" title="Update API Explorer">
+                    <a class="dropdown-toggle" href="updates">
+                        <i class="fas fa-sync-alt fa-lg"></i>
+                    </a>
+                </li>
+                {% endif %}
                 <li class="dropdown" data-toggle="tooltip" data-placement="bottom" title="Developer Settings">
                     <a class="dropdown-toggle" href="developer">
                         <i class="fas fa-code fa-lg"></i>
