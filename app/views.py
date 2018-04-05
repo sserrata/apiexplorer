@@ -989,9 +989,9 @@ def update():
         shutil.move(master, current)
         OLD_DBPATH = 'os.path.abspath(os.path.dirname(__file__))'
         NEW_DBPATH = '/opt/apiexplorerdb'
-        with open('app/views.py') as f:
+        with open('/opt/apiexplorer/app/views.py') as f:
             s = f.read()
-        with open('app/views.py', 'w') as f:
+        with open('/opt/apiexplorer/app/views.py', 'w') as f:
             s = re.sub(OLD_DBPATH, NEW_DBPATH, s)
             f.write(s)
         os.remove('/tmp/apiexplorer.zip')
