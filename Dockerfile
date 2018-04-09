@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3.6-alpine
 MAINTAINER Steven Serrata <sserrata@paloaltonetworks.com>
 
 ENV PYTHONUNBUFFERED 1
