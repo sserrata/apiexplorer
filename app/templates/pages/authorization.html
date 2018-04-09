@@ -39,7 +39,7 @@
                           </small>
                         </p>
                     </div>
-                    {% if not tokens %}
+                    {% if not activation.authorized and not tokens and not activation.client_id %}
                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#authorization">
                         <i class="fas fa-unlock-alt fa=lg"></i> Authorize
                     </button>
@@ -55,6 +55,22 @@
                     <a class="btn btn-danger disabled" href="/delete_tokens">
                         <i class="fas fa-trash fa-lg"></i>
                     </a>
+                    {% elif not activation.authorized %}
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#authorization">
+                        <i class="fas fa-unlock-alt fa-lg"></i> Authorize
+                    </button>
+                    <a class="btn btn-success disabled" href="/refresh_tokens">
+                        <i class="fas fa-sync-alt"></i>
+                    </a>
+                    <a class="btn btn-warning disabled" href="/revoke_access_token">
+                        <i class="fas fa-ban"></i>
+                    </a>
+                    <a class="btn btn-warning disabled" href="/revoke_refresh_token">
+                        <i class="fas fa-ban"></i>
+                    </a>
+                    <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-danger" href="/delete_tokens" data-toggle="tooltip" data-placement="bottom" title="Delete Tokens/Activation">
+                        <i class="fas fa-trash fa-lg"></i>
+                    </a>
                     {% else %}
                     <button type="button" class="btn btn-primary disabled" data-toggle="modal" data-target="#authorization">
                         <i class="fas fa-unlock-alt fa-lg"></i> Authorize
@@ -68,7 +84,7 @@
                     <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-warning" href="/revoke_refresh_token" data-toggle="tooltip" data-placement="bottom" title="Revoke Refresh Token">
                         <i class="fas fa-ban"></i>
                     </a>
-                    <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-danger" href="/delete_tokens" data-toggle="tooltip" data-placement="bottom" title="Delete Tokens">
+                    <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-danger" href="/delete_tokens" data-toggle="tooltip" data-placement="bottom" title="Delete Tokens/Activation">
                         <i class="fas fa-trash fa-lg"></i>
                     </a>
                     {% endif %}
@@ -213,24 +229,44 @@
                             <div class="form-group">
                                 <div class="input-group">
                                   <label>Client ID <small>*</small></label>
-                                  <input type="text" class="form-control" name="client_id" autocomplete="off" size="50" value="" placeholder="client_id" required>
+                                  <input type="text" class="form-control" name="client_id" autocomplete="off" size="50" value="{{ activation.client_id }}" placeholder="client_id" required>
                                 </div>
                                 <div class="input-group">
                                   <label>Client Secret <small>*</small></label>
-                                  <input type="password" data-toggle="password" class="form-control" size="54" name="client_secret" autocomplete="off" value="" placeholder="client_secret" required>
+                                  <input type="password" data-toggle="password" class="form-control" size="54" name="client_secret" autocomplete="off" value="{{ activation.client_secret }}" placeholder="client_secret" required>
                                 </div>
                                 <div class="input-group">
                                   <label>Redirect URI <small>*</small><em> /auth-callback</em></label>
-                                  <input type="text" class="form-control" name="redirect_uri" autocomplete="off" size="50" value="" placeholder="redirect_uri" required>
+                                  <input type="text" class="form-control" name="redirect_uri" autocomplete="off" size="50" value="{{ activation.redirect_uri }}" placeholder="redirect_uri" required>
                                 </div>
                                 <div class="input-group">
                                     <label>Scope <small>*</small><em> (select one or more)</em></label>
                                     <select id="scope" multiple name="scope" style="width: 100%;" required>
-                                        <option>logging-service:read</option>
-                                        <option>logging-service:write</option>
-                                        <option>event-service:read</option>
-                                        <option>event-service:write</option>
-                                        <option>directory-sync-service:read</option>
+                                        {% if 'logging-service:read' in activation.scope %}
+                                            <option selected>logging-service:read</option>
+                                        {% else %}
+                                            <option>logging-service:read</option>
+                                        {% endif %}
+                                        {% if 'logging-service:write' in activation.scope %}
+                                            <option selected>logging-service:write</option>
+                                        {% else %}
+                                            <option>logging-service:write</option>
+                                        {% endif %}
+                                        {% if 'event-service:read' in activation.scope %}
+                                            <option selected>event-service:read</option>
+                                        {% else %}
+                                            <option>event-service:read</option>
+                                        {% endif %}
+                                        {% if 'event-service:write' in activation.scope %}
+                                            <option selected>event-service:write</option>
+                                        {% else %}
+                                            <option>event-service:write</option>
+                                        {% endif %}
+                                        {% if 'directory-sync-service:read' in activation.scope %}
+                                            <option selected>directory-sync-service:read</option>
+                                        {% else %}
+                                            <option>directory-sync-service:read</option>
+                                        {% endif %}
                                     </select>
                                 </div>
                             </div>
@@ -277,16 +313,6 @@
         $("[name='registerable-toggle']").bootstrapSwitch();
     </script>
     <script>
-    $(document).ready(function()
-    {
-        $('.delete').bootstrap_confirm_delete(
-            {
-                debug: true
-            }
-        );
-    } );
-    </script>
-    <script>
     $(function () {
         $('#oauth').DataTable({
             "paging": false,
@@ -301,20 +327,20 @@
     });
     </script>
     <script>
-    $(document).ready(function()
-    {
-        $('.delete').bootstrap_confirm_delete(
-            {
-                heading: 'Delete Tokens',
-                btn_ok_label: 'Delete',
-                btn_cancel_label: 'Cancel'
-            }
-        );
-    } );
-    </script>
-    <script>
         $(document).ready(function() {
             $("#scope").select2();
         });
+    </script>
+    <script>
+        window.setTimeout(function() {
+            $(".alert").fadeTo(500, 0).slideUp(200, function(){
+                $(this).alert('close');
+            });
+        }, 1000);
+    </script>
+    <script>
+        $('#msg_alert').on('closed.bs.alert', function () {
+            window.location.replace("/authorization");
+        })
     </script>
 {% endblock %}

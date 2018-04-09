@@ -8,7 +8,9 @@
     <section class="content-header">
       <h1>
         Global Settings
+          <small><p class="text text-danger">Leave at defaults unless you know better</p></small>
       </h1>
+
     </section>
 
     <section class="content-header">
@@ -47,6 +49,10 @@
                             <div class="input-group">
                                 <label>API Gateway URL</label>
                                 <input type="text" class="form-control" name="apigw_url" autocomplete="off" size="50" value="{{ settings.apigw_url }}" placeholder="https://apigw-stg4.us.paloaltonetworks.com">
+                            </div>
+                            <div class="input-group">
+                                <label>Log Vendor</label>
+                                <input type="text" class="form-control" name="vendor" autocomplete="off" size="50" value="{{ settings.vendor }}" placeholder="panw">
                             </div>
                         </div>
                         <div class="form-group">

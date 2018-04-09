@@ -7,15 +7,15 @@ name = "pypi"
 
 [packages]
 
-flask = "*"
-flask-security = "*"
-flask-sqlalchemy = "*"
+Flask = "*"
+Flask-Security = "*"
+Flask-SQLAlchemy = "*"
 pancloud = "*"
 bcrypt = "*"
 tinydb = "*"
 tinymongo = "*"
 gunicorn = "*"
-pygithub = "*"
+PyGithub = "*"
 psutil = "*"
 
 

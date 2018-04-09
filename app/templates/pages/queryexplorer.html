@@ -26,7 +26,7 @@
                                           <div class="input-group-addon">
                                             <i class="fas fa-terminal"></i>
                                           </div>
-                                          <input id="form-field" type="text" class="form-control" name="query" autocomplete="off" placeholder="SELECT * FROM panw.traffic LIMIT 100">
+                                          <input id="form-field" type="text" class="form-control" name="query" autocomplete="off" placeholder="SELECT * FROM {{ vendor }}.traffic LIMIT 100">
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -52,22 +52,22 @@
                                 <label> Sample Query Library</label>
                                 <select id="select-form" class="form-control select2" style="width: 100%;">
                                     <option value=""></option>
-                                    <option value="SELECT * FROM panw.threat LIMIT 500">THREAT | Last 500 Threat Events</option>
-                                    <option value="SELECT * FROM panw.threat WHERE severity = '5'">THREAT | Critical Severity</option>
-                                    <option value="SELECT * FROM panw.threat WHERE subtype = '1'">THREAT | URL Filtering</option>
-                                    <option value="SELECT  SUM(sessions) AS 'sortby',  _threatid AS '1227' FROM panw.thsum  GROUP BY  _threatid AS 'name-of-threatid' WITH MISSING AS 'default' AND LIMIT 12, _severity AS 'severity-of-threatid' WITH MISSING AS 'default' AND LIMIT 12, _subtype AS 'threat-type' WITH MISSING AS 'default' AND LIMIT 12, _category-of-threatid AS 'category-of-threatid' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY  SUM(sessions) AS 'sortby' DESC  LIMIT 0">THSUM | Threat Activity</option>
-                                    <option value="SELECT * FROM panw.traffic LIMIT 500">TRAFFIC | Last 500 Traffic Events</option>
-                                    <option value="SELECT * FROM panw.traffic WHERE subcategory-of-app = 'social-networking'">TRAFFIC | Social Networking Applications</option>
-                                    <option value="SELECT * FROM panw.traffic WHERE technology-of-app = 'browser-based'">TRAFFIC | Browser-based Applications</option>
-                                    <option value="SELECT * FROM panw.trsum WHERE risk-of-app >= '4' ORDER BY bytes desc">TRSUM | High Risk Applications ORDER BY bytes DESC</option>
-                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(nthreats) AS 'nthreats',  SUM(sessions) AS 'sessions',  _risk-of-app AS '561' FROM panw.trsum GROUP BY  _risk-of-app AS 'risk-of-app' WITH MISSING AS 'default' AND LIMIT 52, _app AS 'app' WITH MISSING AS 'default' AND LIMIT 52 ORDER BY SUM(sessions) AS 'sortby'  DESC  LIMIT 0">TRSUM | Top High-Risk Applications</option>
-                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(sessions) AS 'sessions',  SUM(nthreats) AS 'nthreats', SUM(ncontent) AS 'ncontent', SUM(nurlcount) AS 'nurlcount', PAN_CARDINALITY(app,128) AS 'nunique-of-apps', _rule AS '892' FROM panw.trsum GROUP BY _rule AS 'rule' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(bytes) AS 'sortby' DESC LIMIT 0">TRSUM | Rule Usage</option>
-                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(sessions) AS 'sessions',  SUM(nthreats) AS 'nthreats',  SUM(ncontent) AS 'ncontent',  SUM(nurlcount) AS 'nurlcount',  PAN_CARDINALITY(app,64) AS 'nunique-of-apps',  _srcuser AS '46' FROM panw.trsum  GROUP BY  _srcuser AS 'srcuser' WITH MISSING AS 'default' AND LIMIT 12, _dstuser AS 'dstuser' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(bytes) AS 'sortby'  DESC  LIMIT 0">TRSUM | User Activity</option>
-                                    <option value="SELECT  SUM(bytes) AS 'bytes',  _dstloc AS '71' FROM panw.trsum  GROUP BY  _dstloc AS 'dstloc' WITH MISSING AS 'default' AND LIMIT 502 ORDER BY SUM(bytes) AS 'sortby'  DESC  LIMIT 0">TRSUM | Destination Regions</option>
-                                    <option value="SELECT CARDINALITY(app) FROM panw.trsum">TRSUM | Unique Applications</option>
-                                    <option value="SELECT AVG(bytes) FROM panw.trsum">TRSUM | Average Bytes</option>
-                                    <option value="SELECT * FROM panw.trsum GROUP BY src">TRSUM | Group by Source IP</option>
-                                    <option value="SELECT  SUM(repeatcnt) AS 'repeatcnt',  _category AS '1445' FROM panw.urlsum  GROUP BY  _category AS 'category' WITH MISSING AS 'default' AND LIMIT 12, _url_domain AS 'url_domain' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(repeatcnt) AS 'sortby'  DESC  LIMIT 0">URLSUM | Top URLs by Session</option>
+                                    <option value="SELECT * FROM {{ vendor }}.threat LIMIT 500">THREAT | Last 500 Threat Events</option>
+                                    <option value="SELECT * FROM {{ vendor }}.threat WHERE severity = '5'">THREAT | Critical Severity</option>
+                                    <option value="SELECT * FROM {{ vendor }}.threat WHERE subtype = '1'">THREAT | URL Filtering</option>
+                                    <option value="SELECT  SUM(sessions) AS 'sortby',  _threatid AS '1227' FROM {{ vendor }}.thsum  GROUP BY  _threatid AS 'name-of-threatid' WITH MISSING AS 'default' AND LIMIT 12, _severity AS 'severity-of-threatid' WITH MISSING AS 'default' AND LIMIT 12, _subtype AS 'threat-type' WITH MISSING AS 'default' AND LIMIT 12, _category-of-threatid AS 'category-of-threatid' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY  SUM(sessions) AS 'sortby' DESC  LIMIT 0">THSUM | Threat Activity</option>
+                                    <option value="SELECT * FROM {{ vendor }}.traffic LIMIT 500">TRAFFIC | Last 500 Traffic Events</option>
+                                    <option value="SELECT * FROM {{ vendor }}.traffic WHERE subcategory-of-app = 'social-networking'">TRAFFIC | Social Networking Applications</option>
+                                    <option value="SELECT * FROM {{ vendor }}.traffic WHERE technology-of-app = 'browser-based'">TRAFFIC | Browser-based Applications</option>
+                                    <option value="SELECT * FROM {{ vendor }}.trsum WHERE risk-of-app >= '4' ORDER BY bytes desc">TRSUM | High Risk Applications ORDER BY bytes DESC</option>
+                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(nthreats) AS 'nthreats',  SUM(sessions) AS 'sessions',  _risk-of-app AS '561' FROM {{ vendor }}.trsum GROUP BY  _risk-of-app AS 'risk-of-app' WITH MISSING AS 'default' AND LIMIT 52, _app AS 'app' WITH MISSING AS 'default' AND LIMIT 52 ORDER BY SUM(sessions) AS 'sortby'  DESC  LIMIT 0">TRSUM | Top High-Risk Applications</option>
+                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(sessions) AS 'sessions',  SUM(nthreats) AS 'nthreats', SUM(ncontent) AS 'ncontent', SUM(nurlcount) AS 'nurlcount', PAN_CARDINALITY(app,128) AS 'nunique-of-apps', _rule AS '892' FROM {{ vendor }}.trsum GROUP BY _rule AS 'rule' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(bytes) AS 'sortby' DESC LIMIT 0">TRSUM | Rule Usage</option>
+                                    <option value="SELECT  SUM(bytes) AS 'bytes',  SUM(sessions) AS 'sessions',  SUM(nthreats) AS 'nthreats',  SUM(ncontent) AS 'ncontent',  SUM(nurlcount) AS 'nurlcount',  PAN_CARDINALITY(app,64) AS 'nunique-of-apps',  _srcuser AS '46' FROM {{ vendor }}.trsum  GROUP BY  _srcuser AS 'srcuser' WITH MISSING AS 'default' AND LIMIT 12, _dstuser AS 'dstuser' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(bytes) AS 'sortby'  DESC  LIMIT 0">TRSUM | User Activity</option>
+                                    <option value="SELECT  SUM(bytes) AS 'bytes',  _dstloc AS '71' FROM {{ vendor }}.trsum  GROUP BY  _dstloc AS 'dstloc' WITH MISSING AS 'default' AND LIMIT 502 ORDER BY SUM(bytes) AS 'sortby'  DESC  LIMIT 0">TRSUM | Destination Regions</option>
+                                    <option value="SELECT CARDINALITY(app) FROM {{ vendor }}.trsum">TRSUM | Unique Applications</option>
+                                    <option value="SELECT AVG(bytes) FROM {{ vendor }}.trsum">TRSUM | Average Bytes</option>
+                                    <option value="SELECT * FROM {{ vendor }}.trsum GROUP BY src">TRSUM | Group by Source IP</option>
+                                    <option value="SELECT  SUM(repeatcnt) AS 'repeatcnt',  _category AS '1445' FROM {{ vendor }}.urlsum  GROUP BY  _category AS 'category' WITH MISSING AS 'default' AND LIMIT 12, _url_domain AS 'url_domain' WITH MISSING AS 'default' AND LIMIT 12 ORDER BY SUM(repeatcnt) AS 'sortby'  DESC  LIMIT 0">URLSUM | Top URLs by Session</option>
                                 </select>
                             </div>
                         </div>

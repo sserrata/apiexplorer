@@ -184,6 +184,7 @@ class OauthDB:
                     'client_secret': client.get('client_secret', ''),
                     'redirect_uri': client.get('redirect_uri', ''),
                     'instance_id': client.get('instance_id', ''),
+                    'region': client.get('region', ''),
                     'scope': client.get('scope', ''),
                     'activated': client.get('activated', False),
                 }
@@ -199,6 +200,7 @@ class OauthDB:
                         ),
                         'redirect_uri': client.get('redirect_uri', ''),
                         'instance_id': client.get('instance_id', ''),
+                        'region': client.get('region', ''),
                         'scope': client.get('scope', ''),
                         'activated': client.get('activated', False),
                     }
@@ -239,7 +241,8 @@ class OauthDB:
                     'revoke_token_url': settings_.get(
                         'revoke_token_url', ''
                     ),
-                    'apigw_url': settings_.get('apigw_url', '')
+                    'apigw_url': settings_.get('apigw_url', ''),
+                    'vendor': settings_.get('vendor', '')
                 }
             )
         except DuplicateKeyError:
@@ -253,7 +256,8 @@ class OauthDB:
                         'revoke_token_url': settings_.get(
                             'revoke_token_url', ''
                         ),
-                        'apigw_url': settings_.get('apigw_url', '')
+                        'apigw_url': settings_.get('apigw_url', ''),
+                        'vendor': settings_.get('vendor', '')
                     }
                 }
             )
@@ -263,6 +267,7 @@ AUTHORIZATION_BASE_URL = 'https://identity.paloaltonetworks.com/as/authorization
 TOKEN_URL = 'https://api.paloaltonetworks.com/api/oauth2/RequestToken'
 REVOKE_TOKEN_URL = 'https://api.paloaltonetworks.com/api/oauth2/RevokeToken'
 APIGW_URL = 'https://apigw-stg4.us.paloaltonetworks.com'
+VENDOR = 'panw'
 
 
 # Creates default admin user on first run - uncomment afterwards
@@ -298,7 +303,7 @@ def index():
 def authorization():
     db_ = OauthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
-    activation = db_.get_activation()
+    activation = db_.get_activation() or {}
     return render_template(
         'pages/authorization.html',
         tokens=db_.tokens,
@@ -443,11 +448,13 @@ def delete_tokens():
     db_.delete_tokens()
     db_.delete_activation()
     oauth = {}
+    activation = db_.get_activation() or {}
     session['oauth_token'] = {}
     return render_template(
         'pages/authorization.html',
         tokens=db_.tokens,
         oauth=oauth,
+        activation=activation,
         alert="success",
         msg="SUCCESS"
     )
@@ -457,28 +464,28 @@ def delete_tokens():
 @login_required
 def idp():
     """Authorize user."""
+    db_ = OauthDB()
+    activation = db_.get_activation()
+    settings_ = db_.get_settings()
     form = request.form
-    client_id = form.get('client_id', None)
-    client_secret = form.get('client_secret', None)
-    redirect_uri = form.get('redirect_uri', None)
-    instance_id = session.get('instance_id', '')
-    region = session.get('region', '')
+    client_id = form.get('client_id', None) or activation.get('client_id', '')
+    client_secret = form.get('client_secret', None) or activation.get('client_secret', '')
+    redirect_uri = form.get('redirect_uri', None) or activation.get('redirect_uri', '')
+    instance_id = session.get('instance_id', None) or activation.get('instance_id', '')
+    region = session.get('region', None) or activation.get('region', '')
     try:
-        scope = ' '.join(form.getlist('scope'))
+        scope = ' '.join(form.getlist('scope')) or activation.get('scope', '')
     except (KeyError, ValueError):
         scope = ''
-    client = {
+    activation_fields = {
         'client_id': client_id,
         'client_secret': client_secret,
         'redirect_uri': redirect_uri,
         'instance_id': instance_id,
+        'region': region,
         'scope': scope
     }
-    db_ = OauthDB()
-    db_.update_activation(client)
-    activation = db_.get_activation()
-    settings_ = db_.get_settings()
-
+    db_.update_activation(activation_fields)
     _state = uuid.uuid4()
     idp_ = OAuth2Session(
         client_id=activation.get('client_id', ''),
@@ -532,13 +539,22 @@ def callback():
                 db_ = OauthDB()
                 db_.delete_activation()
                 db_.delete_tokens()
-                return render_template(
-                    'pages/authorization.html',
-                    tokens=db_.tokens,
-                    oauth={},
-                    alert="danger",
-                    msg="{}: {}".format(error, error_description)
-                )
+                if error:
+                    return render_template(
+                        'pages/authorization.html',
+                        tokens=db_.tokens,
+                        oauth={},
+                        alert="danger",
+                        msg="{}: {}".format(error, error_description)
+                    )
+                else:
+                    return render_template(
+                        'pages/authorization.html',
+                        tokens=db_.tokens,
+                        oauth={},
+                        alert="danger",
+                        msg="{}".format(_e)
+                    )
             else:
                 session['oauth_token'] = token
                 db_ = OauthDB()
@@ -888,23 +904,22 @@ def updates():
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
-    settings_ = {}
     auth_base_url = request.form.get('auth_base_url', '')
     token_url = request.form.get('token_url', '')
     revoke_token_url = request.form.get('revoke_token_url', '')
     apigw_url = request.form.get('apigw_url', '')
+    vendor = request.form.get('vendor', '')
     db_ = OauthDB()
-    settings_['auth_base_url'] = auth_base_url or AUTHORIZATION_BASE_URL
-    settings_['token_url'] = token_url or TOKEN_URL
-    settings_['revoke_token_url'] = revoke_token_url or REVOKE_TOKEN_URL
-    settings_['apigw_url'] = apigw_url or APIGW_URL
+    settings_ = db_.get_settings()
+    settings_['auth_base_url'] = auth_base_url or settings_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    settings_['token_url'] = token_url or settings_.get('token_url', TOKEN_URL)
+    settings_['revoke_token_url'] = revoke_token_url or settings_.get('revoke_token_url', REVOKE_TOKEN_URL)
+    settings_['apigw_url'] = apigw_url or settings_.get('apigw_url', APIGW_URL)
+    settings_['vendor'] = vendor or settings_.get('vendor', VENDOR)
     db_.update_settings(settings_)
-
-    settings = db_.get_settings()
-
     return render_template(
         'pages/settings.html',
-        settings=settings
+        settings=settings_
     )
 
 
@@ -1135,6 +1150,8 @@ def logo():
 def get_global_variables():
     db_ = OauthDB()
     client = db_.get_activation()
+    settings_ = db_.get_settings()
+    vendor = settings_.get('vendor', VENDOR)
     try:
         if client.get('activated', False):
             activated = True
@@ -1143,7 +1160,7 @@ def get_global_variables():
     except AttributeError:
         activated = False
     nginx = get_procs()
-    return dict(activated=activated, nginx=nginx)
+    return dict(activated=activated, nginx=nginx, vendor=vendor)
 
 
 @security.login_context_processor
@@ -1153,7 +1170,10 @@ def login_register_processor():
         params = x.get('params', None)
         if params:
             import base64
-            from urllib.parse import parse_qsl
+            try:
+                from urllib.parse import parse_qsl
+            except ImportError:
+                from urlparse import parse_qsl
             params = base64.b64decode(params)
             x = dict(parse_qsl(params))
             parsed_params = {
@@ -1161,7 +1181,6 @@ def login_register_processor():
             }
             instance_id = parsed_params.get('instance_id', '')
             region = parsed_params.get('region', '')
-            url = parsed_params.get('url', '')
             session['instance_id'] = instance_id
             session['region'] = region
         else:
