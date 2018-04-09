@@ -81,15 +81,29 @@ if __name__ == '__main__':
             threaded=True
         )
     else:
-        options = {
-            'bind': 'unix:/opt/apiexplorer/gunicorn.sock',
-            'umask': '0',
-            'workers': '%s' % max_workers(),
-            'timeout': '300',
-            'loglevel': 'info',
-            'max_requests': '50',
-            'worker_class': 'sync',
-            'errorlog': '/var/log/gunicorn/error.log',
-            'accesslog': '/var/log/gunicorn/access.log',
-        }
-        WebApp(app, options).run()
+        try:
+            options = {
+                'bind': 'unix:/opt/apiexplorer/gunicorn.sock',
+                'umask': '0',
+                'workers': '%s' % max_workers(),
+                'timeout': '300',
+                'loglevel': 'info',
+                'max_requests': '50',
+                'worker_class': 'sync',
+                'errorlog': '/var/log/gunicorn/error.log',
+                'accesslog': '/var/log/gunicorn/access.log',
+            }
+            WebApp(app, options).run()
+        except FileNotFoundError:
+            options = {
+                'bind': 'unix:/opt/apiexplorer/gunicorn.sock',
+                'umask': '0',
+                'workers': '%s' % max_workers(),
+                'timeout': '300',
+                'loglevel': 'info',
+                'max_requests': '50',
+                'worker_class': 'sync',
+                'errorlog': '-',
+                'accesslog': '-',
+            }
+            WebApp(app, options).run()
