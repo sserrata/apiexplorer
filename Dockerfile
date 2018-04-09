@@ -1,6 +1,8 @@
 FROM python:3
 MAINTAINER Steven Serrata <sserrata@paloaltonetworks.com>
 
+ENV PYTHONUNBUFFERED 1
+
 RUN mkdir -p /opt/apiexplorer
 ADD . /opt/apiexplorer/
 RUN pip3 install pip --upgrade
