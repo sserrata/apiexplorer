@@ -3,6 +3,7 @@ MAINTAINER Steven Serrata <sserrata@paloaltonetworks.com>
 
 ENV PYTHONUNBUFFERED 1
 
+RUN apk add gcc
 RUN mkdir -p /opt/apiexplorer
 RUN mkdir -p /var/log/gunicorn
 ADD . /opt/apiexplorer/
