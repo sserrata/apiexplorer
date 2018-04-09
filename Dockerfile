@@ -8,5 +8,5 @@ RUN pip3 install -r /opt/apiexplorer/requirements.txt
 WORKDIR /opt/apiexplorer
 
 # Start app in unix socket mode (add "-d" to listen on TCP)
-CMD ["python", "run.py"]
+CMD ["python3", "run.py"]
 
