@@ -3,7 +3,7 @@ MAINTAINER Steven Serrata <sserrata@paloaltonetworks.com>
 
 ENV PYTHONUNBUFFERED 1
 
-RUN apk add gcc
+apk add --upgrade alpine-sdk
 RUN mkdir -p /opt/apiexplorer
 RUN mkdir -p /var/log/gunicorn
 ADD . /opt/apiexplorer/
