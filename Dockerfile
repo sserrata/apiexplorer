@@ -8,6 +8,7 @@ ADD . /opt/apiexplorer/
 RUN pip3 install pip --upgrade
 RUN pip3 install -r /opt/apiexplorer/requirements.txt
 WORKDIR /opt/apiexplorer
+VOLUME . /opt/apiexplorer
 
 # Start app in unix socket mode (add "-d" to listen on TCP)
 CMD ["python3", "run.py"]
