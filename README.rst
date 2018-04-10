@@ -58,7 +58,7 @@ API Explorer supports two different run modes: **DEFAULT** and **DEBUG**.
     **DEBUG**: API Explorer listens on `http://localhost:5000`
         - Logs debug messages and stack traces to console.
 
-**DEFAULT** Mode (unix socket got gunicorn)::
+**DEFAULT** Mode (unix socket for gunicorn)::
 
     $ ./run.py
 
