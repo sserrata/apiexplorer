@@ -939,7 +939,6 @@ def developer():
 @login_required
 def check_for_updates():
     from github import Github
-    import ssl
     g = Github()
     try:
         o = g.get_organization('PaloAltoNetworks')
@@ -1001,10 +1000,6 @@ def update():
             zip_ref.extractall('/opt')
             zip_ref.close()
             shutil.move(master, current)
-            try:
-                os.remove('/opt/apiexplorer/app/views.py-e')
-            except FileNotFoundError:
-                pass
             os.remove('/tmp/apiexplorer.zip')
             shutil.rmtree(old, ignore_errors=True)
 
@@ -1019,6 +1014,10 @@ def update():
                  "s;{};{};".format(OLD_DBPATH, NEW_DBPATH),
                  "/opt/apiexplorer/app/views.py"]
             )
+            try:
+                os.remove('/opt/apiexplorer/app/views.py-e')
+            except FileNotFoundError:
+                pass
             subprocess.call(
                 ["/usr/bin/sudo", "/usr/sbin/service", "gunicorn", "restart"], shell=False
             )
