@@ -6,9 +6,9 @@ from flask import Flask, logging, session, request
 from api_explorer.constants import VENDOR, DB_DIR_PATH
 from api_explorer.extensions import db, security, user_datastore
 from api_explorer.oauth_db import OAuthDB
-from api_explorer.static_views import static_views
-from api_explorer.views import views
-from it_views import it_views
+from api_explorer.views.it_views import it_views
+from api_explorer.views.static_views import static_views
+from api_explorer.views.views import views
 
 
 def register_blueprints(app):
