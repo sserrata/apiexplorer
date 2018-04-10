@@ -110,6 +110,7 @@ def create_db(app):
         # Create all the tables that does not exist
         db.create_all()
 
+        # Create the admin user
         if not user_datastore.get_user('admin'):
             user_datastore.create_user(email='admin', password='paloalto')
             db.session.commit()
