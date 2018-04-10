@@ -51,24 +51,24 @@ Example
 --------------
 
 API Explorer supports two different run modes: **DEFAULT** and **DEBUG**.
-    
+
     **DEFAULT**: API Explorer listens on `https://localhost:443` (requires sudo privileges)
         - Logs info messages to console.
-        
+
     **DEBUG**: API Explorer listens on `http://localhost:5000`
         - Logs debug messages and stack traces to console.
 
-**DEFAULT** Mode::
+**DEFAULT** Mode (unix socket got gunicorn)::
 
-    $ ./sudo run.py
-    
-**DEBUG** Mode::
+    $ ./run.py
 
-    $ ./run.py -d
-    
+**DEBUG** Mode (TCP/443)::
+
+    $ sudo ./run.py -d
+
     or
-    
-    $ ./run.py --debug
+
+    $ sudo ./run.py --debug
 
 
 Contributors
@@ -79,7 +79,7 @@ Contributors
 .. |pipenv| image:: https://img.shields.io/badge/docs-pipenv-green.svg
     :target: https://docs.pipenv.org
     :alt: Documentation
-    
+
 .. |docs| image:: https://readthedocs.org/projects/api-explorer/badge/?version=latest
         :target: https://api-explorer.readthedocs.io/en/latest/?badge=latest
         :alt: Documentation Status
