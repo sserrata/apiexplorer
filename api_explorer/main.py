@@ -8,11 +8,13 @@ from api_explorer.extensions import db, security, user_datastore
 from api_explorer.oauth_db import OAuthDB
 from api_explorer.static_views import static_views
 from api_explorer.views import views
+from it_views import it_views
 
 
 def register_blueprints(app):
     app.register_blueprint(static_views)
     app.register_blueprint(views)
+    app.register_blueprint(it_views)
 
 
 def setup_configuration(app):
