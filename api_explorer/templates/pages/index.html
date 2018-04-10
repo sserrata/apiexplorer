@@ -8,7 +8,7 @@
             <header class="content-header container-fluid">
                 <div class="col-lg-8">
                     <div class="row">
-                        <h1 class="display-1">Welcome to <img src="/img/logo.png"> Explorer!</h1>
+                        <h1 class="display-1">Welcome to <img src="{{ url_for('static', filename='img/logo.png') }}"> Explorer!</h1>
                     </div>
                 </div>
             </header>
@@ -41,7 +41,7 @@
                         <ol>
                             <li>Register your MANIFEST JSON file <small><em>(contact the Developer Relations team for assistance)<em></em></small>.</li>
                             <li>Activate your API Explorer app under the <a class="btn btn-info btn-xs" href="https://apps-stg4.app-portal-beta.us.paloaltonetworks.com/apps" role="button" target="_blank">Cloud Services Portal</a>.</li>
-                            <li>Click the <img src="/img/logo.png"> icon to land on your API Explorer's login page.</li>
+                            <li>Click the <img src="{{ url_for('static', filename='img/logo.png') }}"> icon to land on your API Explorer's login page.</li>
                                 <ul>
                                     <li>Note: Make sure you <a class="btn btn-primary btn-xs" href="logout" role="button" data-toggle="tooltip" data-placement="bottom" title="Logout"><i class="fas fa-sign-out-alt"></i></a> before this step.</li>
                                 </ul>

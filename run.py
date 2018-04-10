@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import os
-from app import app
 import gunicorn.app.base
 from gunicorn.six import iteritems
 import argparse
 import ssl
 from multiprocessing import cpu_count
 
+from api_explorer.main import create_app
 
 """Run Micro-instance of API Explorer
 
@@ -44,20 +44,18 @@ class WebApp(gunicorn.app.base.BaseApplication):
 
 
 if __name__ == '__main__':
-    p = argparse.ArgumentParser(
+    parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description="Palo Alto Networks API Explorer\n\n"
     )
-    p.add_argument(
-        "-d", "--debug", nargs='?', const=True, help="Debug mode"
+    parser.add_argument(
+        "-d", "--debug", action='store_true', default=False, help="Debug mode"
     )
-    a = p.parse_args()
-    if a.debug:
-        DEBUG = True
-    else:
-        DEBUG = False
+    args = parser.parse_args()
 
-    if DEBUG:
+    app = create_app()
+
+    if args.debug:
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
         if os.path.exists(
             '/etc/ssl/certs/apiexplorer.key'
@@ -77,7 +75,7 @@ if __name__ == '__main__':
             context = 'adhoc'
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
         app.run(
-            host='0.0.0.0', port=443, debug=True, ssl_context=context,
+            host='0.0.0.0', port=443, debug=args.debug, ssl_context=context,
             threaded=True
         )
     else:
