@@ -26,7 +26,7 @@ Features
 Status
 ------
 
-API Explorer is considered **alpha** at this time.
+API Explorer is considered **beta** at this time.
 
 Installation
 ------------
@@ -52,13 +52,17 @@ Example
 
 API Explorer supports two different run modes: **DEFAULT** and **DEBUG**.
 
-    **DEFAULT**: API Explorer listens on `https://localhost:443` (requires sudo privileges)
-        - Logs info messages to console.
+    **DEFAULT**: API Explorer listens on `unix socket`
+        - Logs access and error logs to `/va/log/gunicorn`.
+        - Requires NGiNX (proxypass to socket)
 
-    **DEBUG**: API Explorer listens on `http://localhost:5000`
+    **DEBUG**: API Explorer listens on `TCP/443`
         - Logs debug messages and stack traces to console.
+        - Does not require NGiNX
+        - Runs as multi-threaded
+        - Requires `sudo` privileges
 
-**DEFAULT** Mode (unix socket for gunicorn)::
+**DEFAULT** Mode (unix socket for nginx)::
 
     $ ./run.py
 
