@@ -65,8 +65,6 @@ class User(db.Model, UserMixin):
     last_login_ip = db.Column(db.String(100))
     current_login_ip = db.Column(db.String(100))
     login_count = db.Column(db.Integer)
-    active = db.Column(db.Boolean())
-    confirmed_at = db.Column(db.DateTime())
     roles = db.relationship(
         'Role', secondary=roles_users,
         backref=db.backref('users', lazy='dynamic')
@@ -585,7 +583,6 @@ def callback():
 def queryexplorer():
     db_ = OauthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
-    activation = db_.get_activation()
     settings_ = db_.get_settings()
     try:
         _token = oauth.get('access_token', '')
@@ -668,7 +665,7 @@ def queryexplorer():
                                 )
                             )
                             response.append(page.json())
-                        except Exception as e:
+                        except Exception:
                             print(
                                 "{}: queryId: {}, sequenceNo: {}".format(
                                     page.json()['queryStatus'],
@@ -764,7 +761,6 @@ def directoryexplorer():
     headers = []
     db_ = OauthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
-    activation = db_.get_activation()
     settings_ = db_.get_settings()
     try:
         _token = oauth.get('access_token', '')
@@ -849,7 +845,6 @@ def eventexplorer():
     from pancloud.event import EventService
     db_ = OauthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
-    activation = db_.get_activation()
     settings_ = db_.get_settings()
     try:
         _token = oauth.get('access_token', '')
@@ -1007,8 +1002,6 @@ def update():
             subprocess.call(
                 ["/usr/bin/chown", "-R", "{user}:{user}".format(user=user), current], shell=False
             )
-            OLD_DBPATH = "/opt/apiexplorer/app"
-            NEW_DBPATH = "/opt/apiexplorerdb"
             subprocess.call(
                 ["/usr/bin/sed", "-i", "-e",
                  "1,/\/opt\/apiexplorer\/app/ s/\/opt\/apiexplorer\/app/\/opt\/apiexplorerdb/",
