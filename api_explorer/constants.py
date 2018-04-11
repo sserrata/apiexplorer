@@ -1,4 +1,4 @@
-DB_DIR_PATH = '/opt/apiexplorer/app' + '/db'
+DB_DIR_PATH = '/opt/apiexplorerdb' + '/db'
 AUTHORIZATION_BASE_URL = 'https://identity.paloaltonetworks.com/as/authorization.oauth2'
 TOKEN_URL = 'https://api.paloaltonetworks.com/api/oauth2/RequestToken'
 REVOKE_TOKEN_URL = 'https://api.paloaltonetworks.com/api/oauth2/RevokeToken'
