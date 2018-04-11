@@ -4,7 +4,7 @@ MAINTAINER Steven Serrata <sserrata@paloaltonetworks.com>
 ENV PYTHONUNBUFFERED 1
 
 RUN mkdir -p /opt/apiexplorer
-RUN mkdir -p /var/log/gunicorn
+RUN mkdir -p /opt/apiexplorerdb
 ADD . /opt/apiexplorer/
 RUN pip install pip --upgrade
 RUN pip install pipenv
