@@ -78,7 +78,10 @@ def setup_flask_decorators(app, security_ctx):
                     activated = False
             except AttributeError:
                 activated = False
-            nginx = get_procs()
+            try:
+                nginx = get_procs()
+            except Exception:
+                nginx = []
             return dict(activated=activated, nginx=nginx, vendor=vendor)
 
         @security_ctx.login_context_processor
