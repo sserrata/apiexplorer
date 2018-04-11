@@ -51,6 +51,9 @@ if __name__ == '__main__':
     parser.add_argument(
         "-d", "--debug", action='store_true', default=False, help="Debug mode"
     )
+    parser.add_argument(
+        "-p", "--production", action='store_true', default=False, help="Production mode"
+    )
     args = parser.parse_args()
 
     app = create_app()
@@ -78,6 +81,18 @@ if __name__ == '__main__':
             host='0.0.0.0', port=443, debug=args.debug, ssl_context=context,
             threaded=True
         )
+    elif args.production:
+        options = {
+            'bind': '0.0.0.0:5000',
+            'workers': '%s' % max_workers(),
+            'timeout': '300',
+            'loglevel': 'info',
+            'max_requests': '50',
+            'worker_class': 'sync',
+            'errorlog': '-',
+            'accesslog': '-',
+        }
+        WebApp(app, options).run()
     else:
         options = {
             'bind': 'unix:/opt/apiexplorer/gunicorn.sock',
