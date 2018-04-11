@@ -1,310 +1,33 @@
 import json
-import os
 import uuid
-from tinymongo import TinyMongoClient, DuplicateKeyError
 
-from flask import render_template, send_from_directory, request, \
-    redirect, session, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_security import Security, SQLAlchemyUserDatastore, \
-    UserMixin, RoleMixin, login_required, auth_required, current_user
+from flask import render_template, request, redirect, session, jsonify, Blueprint
+from flask_security import login_required, auth_required, current_user
+from pancloud.event import EventService
 from requests_oauthlib import OAuth2Session
-from app import app
 
-# Uncomment for detailed oauthlib logs
-import logging
-import sys
-log = logging.getLogger('requests_oauthlib')
-log.addHandler(logging.StreamHandler(sys.stdout))
-log.setLevel(logging.DEBUG)
+from api_explorer.constants import APIGW_URL, AUTHORIZATION_BASE_URL, TOKEN_URL, REVOKE_TOKEN_URL, VENDOR
+from api_explorer.oauth_db import OAuthDB
 
-DBPATH = '/opt/apiexplorer/app' + '/db'
-app.jinja_env.cache = {}
-app.config['SECRET_KEY'] = '8Q@U99a3wd8NGuY*nRTJ#WAk4r'
-app.config['PERMANENT_SESSION_LIFETIME'] = 1200
-app.config['SECURITY_REGISTERABLE'] = False
-app.config['SECURITY_TRACKABLE'] = True
-app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
-app.config['SECURITY_CHANGEABLE'] = True
-app.config['SECURITY_SEND_PASSWORD_CHANGE_EMAIL'] = False
-app.config['USE_SESSION_FOR_NEXT'] = True
-app.config['SECURITY_PASSWORD_HASH'] = 'bcrypt'
-SALT = 'gnEH#S8mbR^mZ46Seu^X^b^^dk'
-app.config['SECURITY_PASSWORD_SALT'] = SALT
-app.jinja_env.cache = {}
-app.jinja_env.lstrip_blocks = True
-app.jinja_env.trim_blocks = True
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['WTF_CSRF_ENABLED'] = False
+views = Blueprint('views', __name__)
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + DBPATH + '/security.db'
-db = SQLAlchemy(app)
-
-# Define models
-roles_users = db.Table(
-    'roles_users',
-    db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
-    db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
-)
-
-
-class Role(db.Model, RoleMixin):
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-    description = db.Column(db.String(255))
-
-
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True)
-    password = db.Column(db.String(255))
-    active = db.Column(db.Boolean())
-    confirmed_at = db.Column(db.DateTime())
-    current_login_at = db.Column(db.DateTime())
-    last_login_ip = db.Column(db.String(100))
-    current_login_ip = db.Column(db.String(100))
-    login_count = db.Column(db.Integer)
-    roles = db.relationship(
-        'Role', secondary=roles_users,
-        backref=db.backref('users', lazy='dynamic')
-    )
-
-
-user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-security = Security(app, user_datastore)
-
-
-class OauthDB:
-    """An Oauth database instance."""
-    def __init__(self):
-        self.connection = TinyMongoClient(DBPATH)
-        self.app = self.connection.app
-        self.oauth = self.app.oauth
-        self.activation = self.app.activation
-        self.settings = self.app.settings
-
-    @property
-    def tokens(self):
-        if self.oauth.find_one({'_id': 1}):
-            return True
-        else:
-            return False
-
-    def update_oauth(self, oauth):
-        """Store authorization tokens."""
-        _type = 'urn:pingidentity.com:oauth2:validated_token'
-        try:
-            self.oauth.insert_one(
-                {
-                    '_id': 1,
-                    'access_token': oauth.get('access_token', ''),
-                    'refresh_token': oauth.get('refresh_token', ''),
-                    'token_type': oauth.get('token_type', ''),
-                    'expires_in': oauth.get('expires_in', ''),
-                    'expires_at': oauth.get('expires_at', '')
-                }
-            )
-        except DuplicateKeyError:
-            if oauth.get('token_type', '') == _type:
-                import json
-                _custom = oauth.get('access_token', '{}')
-                try:
-                    session['oauth_token']['token_type'] = oauth.get('token_type', '')
-                    session['oauth_token']['expires_in'] = oauth.get('expires_in', '')
-                    session['oauth_token']['client_id'] = oauth.get('client_id', '')
-                    session['oauth_token']['scope'] = oauth.get('scope', '')
-                    session['oauth_token']['sub'] = _custom.get('sub', '')
-                    session['oauth_token']['pa_3p_tenant'] = _custom.get('pa_3p_tenant', '')
-                    session['oauth_token']['username'] = _custom.get('username', '')
-                except KeyError:
-                    session['oauth_token'] = {}
-                    o = self.get_oauth()
-                    session['oauth_token']['token_type'] = o.get('token_type', '')
-                    session['oauth_token']['expires_in'] = o.get('expires_in', '')
-                    session['oauth_token']['client_id'] = o.get('client_id', '')
-                    session['oauth_token']['scope'] = o.get('scope', '')
-                    session['oauth_token']['sub'] = _custom.get('sub', '')
-                    session['oauth_token']['pa_3p_tenant'] = _custom.get('pa_3p_tenant', '')
-                    session['oauth_token']['username'] = _custom.get('username', '')
-                self.oauth.update_one(
-                    {'_id': 1},
-                    {
-                        '$set': {
-                            'token_type': oauth.get('token_type', ''),
-                            'expires_in': oauth.get('expires_in', ''),
-                            'client_id': oauth.get('client_id', ''),
-                            'scope': oauth.get('scope', ''),
-                            'sub': _custom.get('sub', ''),
-                            'pa_3p_tenant': _custom.get('pa_3p_tenant', ''),
-                            'username': _custom.get('username', '')
-                        }
-                    }
-                )
-            else:
-                self.oauth.update_one(
-                    {'_id': 1},
-                    {
-                        '$set': {
-                            'access_token': oauth.get(
-                                'access_token', ''
-                            ),
-                            'refresh_token': oauth.get(
-                                'refresh_token', ''
-                            ),
-                            'token_type': oauth.get('token_type', ''),
-                            'expires_in': oauth.get('expires_in', '')
-                        }
-                    }
-                )
-
-    def get_oauth(self):
-        return self.oauth.find_one({'_id': 1}) or {}
-
-    def delete_tokens(self):
-        try:
-            return self.oauth.delete_one({'_id': 1})
-        except TypeError:
-            return
-
-    def delete_activation(self):
-        try:
-            return self.activation.delete_one({'_id': 1})
-        except TypeError:
-            return
-
-    def update_activation(self, client):
-        try:
-            self.activation.insert_one(
-                {
-                    '_id': 1,
-                    'client_id': client.get('client_id', ''),
-                    'client_secret': client.get('client_secret', ''),
-                    'redirect_uri': client.get('redirect_uri', ''),
-                    'instance_id': client.get('instance_id', ''),
-                    'region': client.get('region', ''),
-                    'scope': client.get('scope', ''),
-                    'activated': client.get('activated', False),
-                }
-            )
-        except DuplicateKeyError:
-            self.activation.update_one(
-                {'_id': 1},
-                {
-                    '$set': {
-                        'client_id': client.get('client_id', ''),
-                        'client_secret': client.get(
-                            'client_secret', ''
-                        ),
-                        'redirect_uri': client.get('redirect_uri', ''),
-                        'instance_id': client.get('instance_id', ''),
-                        'region': client.get('region', ''),
-                        'scope': client.get('scope', ''),
-                        'activated': client.get('activated', False),
-                    }
-                }
-            )
-
-    def get_activation(self):
-        return self.activation.find_one({'_id': 1}) or {}
-
-    def get_settings(self):
-        return self.settings.find_one({'_id': 1}) or {}
-
-    def update_api_key(self, key):
-        try:
-            self.activation.insert_one(
-                {
-                    '_id': 1,
-                    'key': key
-                }
-            )
-        except DuplicateKeyError:
-            self.activation.update_one(
-                {'_id': 1},
-                {
-                    '$set': {
-                        'key': key
-                    }
-                }
-            )
-
-    def update_settings(self, settings_):
-        try:
-            self.settings.insert_one(
-                {
-                    '_id': 1,
-                    'auth_base_url': settings_.get('auth_base_url', ''),
-                    'token_url': settings_.get('token_url', ''),
-                    'revoke_token_url': settings_.get(
-                        'revoke_token_url', ''
-                    ),
-                    'apigw_url': settings_.get('apigw_url', ''),
-                    'vendor': settings_.get('vendor', '')
-                }
-            )
-        except DuplicateKeyError:
-            self.settings.update_one(
-                {'_id': 1},
-                {
-                    '$set': {
-                        'auth_base_url': settings_.get('auth_base_url',
-                                                       ''),
-                        'token_url': settings_.get('token_url', ''),
-                        'revoke_token_url': settings_.get(
-                            'revoke_token_url', ''
-                        ),
-                        'apigw_url': settings_.get('apigw_url', ''),
-                        'vendor': settings_.get('vendor', '')
-                    }
-                }
-            )
-
-
-AUTHORIZATION_BASE_URL = 'https://identity.paloaltonetworks.com/as/authorization.oauth2'
-TOKEN_URL = 'https://api.paloaltonetworks.com/api/oauth2/RequestToken'
-REVOKE_TOKEN_URL = 'https://api.paloaltonetworks.com/api/oauth2/RevokeToken'
-APIGW_URL = 'https://apigw-stg4.us.paloaltonetworks.com'
-VENDOR = 'panw'
-
-
-# Creates default admin user on first run - uncomment afterwards
-@app.before_first_request
-def create_user():
-    try:
-        if not user_datastore.get_user('admin'):
-            db.create_all()
-            user_datastore.create_user(email='admin', password='paloalto')
-            db.session.commit()
-    except Exception as e:
-        print(e)
-        db.create_all()
-        user_datastore.create_user(email='admin', password='paloalto')
-        db.session.commit()
-
-
-@app.before_request
-def func():
-    """Marks session as modified to force a new session"""
-    session.modified = True
-
-
-@app.route('/')
-@app.route('/index.html')
+@views.route('/')
+@views.route('/index.html')
 @login_required
 def index():
     return render_template('pages/index.html')
 
 
-@app.route('/authorization')
+@views.route('/authorization')
 @login_required
 def authorization():
-    db_ = OauthDB()
+    db_ = OAuthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
     activation = db_.get_activation() or {}
     return render_template(
         'pages/authorization.html',
-        tokens=db_.tokens,
+        has_has_tokens=db_.has_tokens,
         oauth=oauth,
         activation=activation,
         alert=None,
@@ -312,10 +35,10 @@ def authorization():
     )
 
 
-@app.route('/refresh_tokens')
+@views.route('/refresh_tokens')
 @auth_required('basic', 'session', 'token')
 def refresh_tokens():
-    db_ = OauthDB()
+    db_ = OAuthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
     client = db_.get_activation()
     refresh_token = oauth['refresh_token']
@@ -335,7 +58,7 @@ def refresh_tokens():
         print(_e)
         return render_template(
             'pages/authorization.html',
-            tokens=db_.tokens,
+            has_tokens=db_.has_tokens,
             oauth=oauth,
             activation=activation,
             alert="danger",
@@ -343,11 +66,11 @@ def refresh_tokens():
         )
     else:
         session['oauth_token'] = token
-        db_ = OauthDB()
+        db_ = OAuthDB()
         db_.update_oauth(token)
         return render_template(
             'pages/authorization.html',
-            tokens=db_.tokens,
+            has_tokens=db_.has_tokens,
             oauth=oauth,
             activation=activation,
             alert="success",
@@ -355,11 +78,11 @@ def refresh_tokens():
         )
 
 
-@app.route('/revoke_access_token')
+@views.route('/revoke_access_token')
 @login_required
 def revoke_access_token():
     import requests
-    db_ = OauthDB()
+    db_ = OAuthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
     activation = db_.get_activation()
     settings_ = db_.get_settings()
@@ -382,7 +105,7 @@ def revoke_access_token():
             print(_e)
             return render_template(
                 'pages/authorization.html',
-                tokens=db_.tokens,
+                has_tokens=db_.has_tokens,
                 oauth=oauth,
                 alert="danger",
                 msg="{}".format(_e)
@@ -390,18 +113,18 @@ def revoke_access_token():
         else:
             return render_template(
                 'pages/authorization.html',
-                tokens=db_.tokens,
+                has_tokens=db_.has_tokens,
                 oauth=oauth,
                 alert="success",
                 msg="SUCCESS"
             )
 
 
-@app.route('/revoke_refresh_token')
+@views.route('/revoke_refresh_token')
 @login_required
 def revoke_refresh_token():
     import requests
-    db_ = OauthDB()
+    db_ = OAuthDB()
     oauth = session.get('oauth_token', db_.get_oauth())
     activation = db_.get_activation()
     settings_ = db_.get_settings()
@@ -424,7 +147,7 @@ def revoke_refresh_token():
             print(_e)
             return render_template(
                 'pages/authorization.html',
-                tokens=db_.tokens,
+                has_tokens=db_.has_tokens,
                 oauth=oauth,
                 alert="danger",
                 msg="{}".format(_e)
@@ -432,17 +155,17 @@ def revoke_refresh_token():
         else:
             return render_template(
                 'pages/authorization.html',
-                tokens=db_.tokens,
+                has_tokens=db_.has_tokens,
                 oauth=oauth,
                 alert="success",
                 msg="SUCCESS"
             )
 
 
-@app.route('/delete_tokens')
+@views.route('/delete_tokens')
 @login_required
 def delete_tokens():
-    db_ = OauthDB()
+    db_ = OAuthDB()
     db_.delete_tokens()
     db_.delete_activation()
     oauth = {}
@@ -450,7 +173,7 @@ def delete_tokens():
     session['oauth_token'] = {}
     return render_template(
         'pages/authorization.html',
-        tokens=db_.tokens,
+        has_tokens=db_.has_tokens,
         oauth=oauth,
         activation=activation,
         alert="success",
@@ -458,11 +181,11 @@ def delete_tokens():
     )
 
 
-@app.route("/idp", methods=['POST', 'GET'])
+@views.route("/idp", methods=['POST', 'GET'])
 @login_required
 def idp():
     """Authorize user."""
-    db_ = OauthDB()
+    db_ = OAuthDB()
     activation = db_.get_activation()
     settings_ = db_.get_settings()
     form = request.form
@@ -502,10 +225,10 @@ def idp():
     return redirect(authorization_url)
 
 
-@app.route("/auth-callback", methods=['POST', 'GET'])
+@views.route("/auth-callback", methods=['POST', 'GET'])
 def callback():
     """Retrieve an access token."""
-    db_ = OauthDB()
+    db_ = OAuthDB()
     activation = db_.get_activation()
     settings_ = db_.get_settings()
     code = request.args.get('code', None)
@@ -534,13 +257,13 @@ def callback():
             except Exception as _e:
                 print('Exception occurred: {}'.format(_e))
                 print(error)
-                db_ = OauthDB()
+                db_ = OAuthDB()
                 db_.delete_activation()
                 db_.delete_tokens()
                 if error:
                     return render_template(
                         'pages/authorization.html',
-                        tokens=db_.tokens,
+                        has_tokens=db_.has_tokens,
                         oauth={},
                         alert="danger",
                         msg="{}: {}".format(error, error_description)
@@ -548,14 +271,14 @@ def callback():
                 else:
                     return render_template(
                         'pages/authorization.html',
-                        tokens=db_.tokens,
+                        has_tokens=db_.has_tokens,
                         oauth={},
                         alert="danger",
                         msg="{}".format(_e)
                     )
             else:
                 session['oauth_token'] = token
-                db_ = OauthDB()
+                db_ = OAuthDB()
                 activation = db_.get_activation()
                 activation.update({'activated': True})
                 db_.update_activation(activation)
@@ -563,7 +286,7 @@ def callback():
                 return redirect('/authorization')
         return render_template(
             'pages/authorization.html',
-            tokens=db_.tokens,
+            has_tokens=db_.has_tokens,
             oauth={},
             alert="danger",
             msg="STATE MISMATCH: Possible CSRF detected!"
@@ -571,17 +294,17 @@ def callback():
     except Exception as e:
         return render_template(
             'pages/authorization.html',
-            tokens=db_.tokens,
+            has_tokens=db_.has_tokens,
             oauth={},
             alert="danger",
             msg="{}".format(e)
         )
 
 
-@app.route('/queryexplorer', methods=['POST', 'GET'])
+@views.route('/queryexplorer', methods=['POST', 'GET'])
 @login_required
 def queryexplorer():
-    db_ = OauthDB()
+    db_ = OAuthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
     settings_ = db_.get_settings()
     try:
@@ -747,7 +470,7 @@ def queryexplorer():
     )
 
 
-@app.route('/directoryexplorer', methods=['POST', 'GET'])
+@views.route('/directoryexplorer', methods=['POST', 'GET'])
 @login_required
 def directoryexplorer():
     obj = request.form.get('object', None)
@@ -759,7 +482,7 @@ def directoryexplorer():
     results = {}
     s = ""
     headers = []
-    db_ = OauthDB()
+    db_ = OAuthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
     settings_ = db_.get_settings()
     try:
@@ -836,14 +559,13 @@ def directoryexplorer():
         )
 
 
-@app.route('/eventexplorer', methods=['POST', 'GET'])
+@views.route('/eventexplorer', methods=['POST', 'GET'])
 @login_required
 def eventexplorer():
     channel_id = request.form.get('channel', 'EventFilter')
     endpoint = request.form.get('endpoint', '')
     payload = request.form.get('payload', None)
-    from pancloud.event import EventService
-    db_ = OauthDB()
+    db_ = OAuthDB()
     oauth = db_.get_oauth() or session.get('oauth_token', '')
     settings_ = db_.get_settings()
     try:
@@ -886,7 +608,7 @@ def eventexplorer():
     )
 
 
-@app.route('/updates', methods=['GET'])
+@views.route('/updates', methods=['GET'])
 @login_required
 def updates():
     return render_template(
@@ -896,7 +618,7 @@ def updates():
     )
 
 
-@app.route('/settings', methods=['GET', 'POST'])
+@views.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
     auth_base_url = request.form.get('auth_base_url', '')
@@ -904,7 +626,7 @@ def settings():
     revoke_token_url = request.form.get('revoke_token_url', '')
     apigw_url = request.form.get('apigw_url', '')
     vendor = request.form.get('vendor', '')
-    db_ = OauthDB()
+    db_ = OAuthDB()
     settings_ = db_.get_settings()
     settings_['auth_base_url'] = auth_base_url or settings_.get('auth_base_url', AUTHORIZATION_BASE_URL)
     settings_['token_url'] = token_url or settings_.get('token_url', TOKEN_URL)
@@ -918,10 +640,10 @@ def settings():
     )
 
 
-@app.route('/developer', methods=['GET'])
+@views.route('/developer', methods=['GET'])
 @login_required
 def developer():
-    db_ = OauthDB()
+    db_ = OAuthDB()
     activation = db_.get_activation()
     key_ = activation.get('key', '')
     return render_template(
@@ -930,154 +652,21 @@ def developer():
     )
 
 
-@app.route('/check_for_updates', methods=['GET'])
-@login_required
-def check_for_updates():
-    from github import Github
-    g = Github()
-    try:
-        o = g.get_organization('PaloAltoNetworks')
-        r = o.get_repo('apiexplorer')
-    except Exception as e:
-        return render_template(
-            'pages/updates.html',
-            msg="{}".format(e),
-            status="danger"
-        )
-    else:
-        try:
-            last_commit = r.get_commits()[0].sha
-        except (TypeError, KeyError):
-            last_commit = ''
-        with open('.git/logs/HEAD', 'rb') as logs:
-            last = logs.readlines()[-1].decode()
-            commit = last.split(' ')[1]
-        if commit == last_commit:
-            return render_template(
-                'pages/updates.html',
-                msg="Update available",
-                status="warning"
-            )
-        else:
-            return render_template(
-                'pages/updates.html',
-                msg="No Updates Available",
-                status="success"
-            )
-
-
-@app.route('/update', methods=['GET'])
-@login_required
-def update():
-    import requests
-    import zipfile
-    old = '/opt/apiexplorer.old'
-    current = '/opt/apiexplorer'
-    master = '/opt/apiexplorer-master'
-    zip_url = 'https://github.com/PaloAltoNetworks/apiexplorer/archive/master.zip'
-    try:
-        r = requests.get(zip_url, stream=True)
-        with open("/tmp/apiexplorer.zip", "wb") as f:
-            f.write(r.content)
-    except Exception as e:
-        return render_template(
-            'pages/updates.html',
-            msg="{}".format(e),
-            status="danger"
-        )
-    else:
-        try:
-            import shutil
-            import subprocess
-            import pwd
-            shutil.move(current, old)
-            zip_ref = zipfile.ZipFile('/tmp/apiexplorer.zip', 'r')
-            zip_ref.extractall('/opt')
-            zip_ref.close()
-            shutil.move(master, current)
-            os.remove('/tmp/apiexplorer.zip')
-            shutil.rmtree(old, ignore_errors=True)
-
-            user = pwd.getpwuid(os.geteuid()).pw_name
-            subprocess.call(
-                ["/usr/bin/chown", "-R", "{user}:{user}".format(user=user), current], shell=False
-            )
-            subprocess.call(
-                ["/usr/bin/sed", "-i", "-e",
-                 "1,/\/opt\/apiexplorer\/app/ s/\/opt\/apiexplorer\/app/\/opt\/apiexplorerdb/",
-                 "/opt/apiexplorer/app/views.py"]
-            )
-            try:
-                os.remove('/opt/apiexplorer/app/views.py-e')
-            except FileNotFoundError:
-                pass
-            subprocess.call(
-                ["/usr/bin/sudo", "/usr/sbin/service", "gunicorn", "restart"], shell=False
-            )
-            return render_template(
-                'pages/updates.html',
-                msg="Success",
-                status="success"
-            )
-        except Exception as e:
-            return render_template(
-                'pages/updates.html',
-                msg="{}".format(e),
-                status="danger"
-            )
-
-
-@app.route('/restart_process')
-@login_required
-def restart_process():
-    import subprocess
-    try:
-        if 'pname' in request.args:
-            pname = request.args['pname']
-            include_list = ['gunicorn']
-            if pname in include_list:
-                subprocess.call(
-                    ["/usr/bin/sudo", "/usr/sbin/service", "{}".format(pname), "restart"], shell=False
-                )
-    except Exception as e:
-        return render_template(
-            'pages/updates.html',
-            msg="{}".format(e),
-            status="danger"
-        )
-    else:
-        return render_template(
-            'pages/updates.html',
-            msg="Success",
-            status="success"
-        )
-
-
-def get_procs():
-    import psutil
-    master = ['nginx']
-    processes = []
-    for p in psutil.process_iter():
-        if p.name() in master:
-            processes.append(p.name())
-    return processes
-
-
-@app.route('/get_tokens', methods=['GET'], endpoint='get_tokens')
+@views.route('/get_tokens', methods=['GET'], endpoint='get_tokens')
 @auth_required('basic', 'session', 'token')
 def get_tokens():
-    db_ = OauthDB()
+    db_ = OAuthDB()
     oauth = db_.get_oauth()
     return jsonify(oauth)
 
 
-@app.route('/generate_api_key', methods=['POST'])
+@views.route('/generate_api_key', methods=['POST'])
 @login_required
 def generate_api_key():
     import requests
     email = request.form.get('email', current_user.email)
     password = request.form.get('password', '')
-    db_ = OauthDB()
+    db_ = OAuthDB()
     activation = db_.get_activation()
     key_ = activation.get('key', '')
     try:
@@ -1102,7 +691,7 @@ def generate_api_key():
             if "errors" not in response and len(response) > 0:
                 user = response.get('user', {})
                 key_ = user.get('authentication_token', '')
-                db_ = OauthDB()
+                db_ = OAuthDB()
                 db_.update_api_key(key_)
                 msg = "success"
                 status = "success"
@@ -1123,59 +712,3 @@ def generate_api_key():
             msg="{}".format(e),
             status="danger"
         )
-
-
-@app.route('/favicon.ico')
-@login_required
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'templates'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-
-@app.route('/logo.png')
-def logo():
-    return send_from_directory(os.path.join(app.root_path, 'templates'),
-                               'logo.png', mimetype='image/png')
-
-
-@app.context_processor
-def get_global_variables():
-    db_ = OauthDB()
-    client = db_.get_activation()
-    settings_ = db_.get_settings()
-    vendor = settings_.get('vendor', VENDOR)
-    try:
-        if client.get('activated', False):
-            activated = True
-        else:
-            activated = False
-    except AttributeError:
-        activated = False
-    nginx = get_procs()
-    return dict(activated=activated, nginx=nginx, vendor=vendor)
-
-
-@security.login_context_processor
-def login_register_processor():
-    if not session.get('instance_id', None):
-        x = request.args.to_dict()
-        params = x.get('params', None)
-        if params:
-            import base64
-            try:
-                from urllib.parse import parse_qsl
-            except ImportError:
-                from urlparse import parse_qsl
-            params = base64.b64decode(params)
-            x = dict(parse_qsl(params))
-            parsed_params = {
-                k.decode("utf-8"): v.decode("utf-8") for k, v in x.items()
-            }
-            instance_id = parsed_params.get('instance_id', '')
-            region = parsed_params.get('region', '')
-            session['instance_id'] = instance_id
-            session['region'] = region
-        else:
-            session['instance_id'] = ''
-            session['region'] = ''
-    return dict()
