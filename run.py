@@ -51,6 +51,9 @@ if __name__ == '__main__':
     p.add_argument(
         "-d", "--debug", nargs='?', const=True, help="Debug mode"
     )
+    p.add_argument(
+        "-p", "--production", nargs='?', const=True, help="Production mode"
+    )
     a = p.parse_args()
     if a.debug:
         DEBUG = True
@@ -80,6 +83,18 @@ if __name__ == '__main__':
             host='0.0.0.0', port=443, debug=True, ssl_context=context,
             threaded=True
         )
+    elif a.production:
+        options = {
+            'bind': '0.0.0.0:5000',
+            'workers': '%s' % max_workers(),
+            'timeout': '300',
+            'loglevel': 'info',
+            'max_requests': '50',
+            'worker_class': 'sync',
+            'errorlog': '-',
+            'accesslog': '-',
+        }
+        WebApp(app, options).run()
     else:
         options = {
             'bind': 'unix:/opt/apiexplorer/gunicorn.sock',
