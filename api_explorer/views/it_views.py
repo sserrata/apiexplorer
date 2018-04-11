@@ -84,10 +84,10 @@ def update():
             subprocess.call(
                 ["/usr/bin/sed", "-i", "-e",
                  "1,/\/opt\/apiexplorer\/app/ s/\/opt\/apiexplorer\/app/\/opt\/apiexplorerdb/",
-                 "/opt/apiexplorer/api_explorer/views/constants.py"]
+                 "/opt/apiexplorer/api_explorer/constants.py"]
             )
             try:
-                os.remove('/opt/apiexplorer/api_explorer/views/constants.py-e')
+                os.remove('/opt/apiexplorer/api_explorer/constants.py-e')
             except FileNotFoundError:
                 pass
             subprocess.call(
