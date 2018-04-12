@@ -12,6 +12,4 @@ RUN pip install pipenv
 WORKDIR /opt/apiexplorer
 RUN pipenv install --system --deploy
 
-# Start app in unix socket mode (add "-d" to listen on TCP)
-# CMD python run.py
 
