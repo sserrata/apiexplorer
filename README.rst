@@ -69,8 +69,6 @@ API Explorer supports three different run modes: **DEFAULT**, **PRODUCTION** and
 Usage
 -----
 
-**USAGE**
-
     usage: run.py [-h] [-d] [-p]
 
     Palo Alto Networks API Explorer
