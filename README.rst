@@ -4,7 +4,6 @@ API Explorer
 
 Sample application for the Palo Alto Networks Application Framework.
 
-* Overview: https://github.com/PaloAltoNetworks/apiexplorer
 * Documentation: https://apiexplorer.readthedocs.io
 * Free software: ISC license
 
@@ -21,7 +20,7 @@ Features
 - Built on top of Palo Alto Networks Cloud Python SDK.
 - Logging, Event and Directory-Sync Explorers.
 - Sample Query Library for Logging Service.
-- Explore API requests/responses.
+- Experiment with API requests/responses.
 
 Status
 ------
@@ -50,21 +49,45 @@ Enter a pipenv shell::
 Example
 --------------
 
-API Explorer supports two different run modes: **DEFAULT** and **DEBUG**.
+API Explorer supports three different run modes: **DEFAULT**, **PRODUCTION** and **DEBUG**.
 
     **DEFAULT**: API Explorer listens on `unix socket`
         - Logs access and error logs to `/va/log/gunicorn`.
-        - Requires NGiNX (proxypass to socket)
+        - Intended to run behind NGiNX (proxypass to socket)
+
+    **PRODUCTION**: API Explorer listens on `TCP/5000`
+        - Logs access and error logs to `stdout`.
+        - Intended to run behind NGiNX (proxypass to `TCP/5000`).
+        - Used in docker-compose container.
 
     **DEBUG**: API Explorer listens on `TCP/443`
         - Logs debug messages and stack traces to console.
         - Does not require NGiNX
         - Runs as multi-threaded
-        - Requires `sudo` privileges
+        - Requires `sudo` privileges or port mapping
+
+**USAGE**
+
+    usage: run.py [-h] [-d] [-p]
+
+    Palo Alto Networks API Explorer
+
+    optional arguments:
+      -h, --help        show this help message and exit
+      -d, --debug       Debug mode
+      -p, --production  Production mode
 
 **DEFAULT** Mode (unix socket for nginx)::
 
     $ ./run.py
+
+**PRODUCTION** Mode (TCP/5000)::
+
+    $ ./run.py -p
+
+    or
+
+    $ ./run.py --production
 
 **DEBUG** Mode (TCP/443)::
 
@@ -73,7 +96,6 @@ API Explorer supports two different run modes: **DEFAULT** and **DEBUG**.
     or
 
     $ sudo ./run.py --debug
-
 
 Contributors
 ------------
