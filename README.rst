@@ -46,8 +46,8 @@ Enter a pipenv shell::
 
     $ pipenv shell
 
-Example
---------------
+Run Modes
+---------
 
 API Explorer supports three different run modes: **DEFAULT**, **PRODUCTION** and **DEBUG**.
 
@@ -65,6 +65,9 @@ API Explorer supports three different run modes: **DEFAULT**, **PRODUCTION** and
         - Does not require NGiNX
         - Runs as multi-threaded
         - Requires `sudo` privileges or port mapping
+
+Usage
+-----
 
 **USAGE**
 
