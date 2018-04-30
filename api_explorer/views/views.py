@@ -207,6 +207,7 @@ def idp():
         'scope': scope
     }
     db_.update_activation(activation_fields)
+    activation = db_.get_activation()    
     _state = uuid.uuid4()
     idp_ = OAuth2Session(
         client_id=activation.get('client_id', ''),
