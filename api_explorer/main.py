@@ -2,6 +2,7 @@ import sys
 
 import click
 from flask import Flask, logging, session, request
+import logging as logging_
 
 from api_explorer.constants import VENDOR, DB_DIR_PATH
 from api_explorer.extensions import db, security, user_datastore
@@ -40,10 +41,15 @@ def setup_configuration(app):
 
 
 def setup_logging(app):
-    # Uncomment for detailed oauthlib logs
-    log = logging.getLogger('requests_oauthlib')
-    log.addHandler(logging.StreamHandler(sys.stdout))
-    log.setLevel(logging.DEBUG)
+    log = logging_.getLogger('requests_oauthlib')
+    log.addHandler(logging_.StreamHandler(sys.stdout))
+    log.setLevel(logging_.DEBUG)
+
+    if __name__ != '__main__':
+        gunicorn_logger = logging.getLogger('gunicorn.error')
+        app.logger.handlers = gunicorn_logger.handlers
+        app.logger.handlers = log.handlers
+        app.logger.setLevel(gunicorn_logger.level)
 
 
 def init_extensions(app):
