@@ -528,11 +528,7 @@ def directoryexplorer():
                     headers=headers, endpoint=endpoint, status=s
                 )
             else:
-                data = {
-                    "tenantId": "Yellow"
-                }
                 r = m(
-                    data=data,
                     timeout=15
                 )
                 s = r.status_code
