@@ -1,7 +1,8 @@
 import json
 import uuid
+import os
 
-from flask import render_template, request, redirect, session, jsonify, Blueprint
+from flask import render_template, request, redirect, session, jsonify, Blueprint, send_from_directory
 from flask_security import login_required, auth_required, current_user
 from pancloud.event import EventService
 from requests_oauthlib import OAuth2Session
@@ -207,7 +208,7 @@ def idp():
         'scope': scope
     }
     db_.update_activation(activation_fields)
-    activation = db_.get_activation()    
+    activation = db_.get_activation()
     _state = uuid.uuid4()
     idp_ = OAuth2Session(
         client_id=activation.get('client_id', ''),
@@ -709,3 +710,20 @@ def generate_api_key():
             msg="{}".format(e),
             status="danger"
         )
+
+
+@views.route('/logo.png')
+def logo():
+    return send_from_directory(os.path.join(
+        views.root_path, '../templates'), 'logo.png',
+        mimetype='image/png'
+    )
+
+
+@views.route('/favicon.ico')
+@login_required
+def favicon():
+    return send_from_directory(os.path.join(
+        views.root_path, '../templates'), 'favicon.ico',
+        mimetype='image/vnd.microsoft.icon'
+    )
