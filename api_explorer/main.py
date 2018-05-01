@@ -3,6 +3,7 @@ import sys
 import click
 from flask import Flask, logging, session, request
 import logging as logging_
+from . import __version__
 
 from api_explorer.constants import VENDOR, DB_DIR_PATH
 from api_explorer.extensions import db, security, user_datastore
@@ -88,7 +89,10 @@ def setup_flask_decorators(app, security_ctx):
                 nginx = get_procs()
             except Exception:
                 nginx = []
-            return dict(activated=activated, nginx=nginx, vendor=vendor)
+            return dict(
+                activated=activated, nginx=nginx, vendor=vendor,
+                version=__version__
+            )
 
         @security_ctx.login_context_processor
         def login_register_processor():
