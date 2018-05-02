@@ -68,6 +68,8 @@ def refresh_tokens():
     else:
         session['oauth_token'] = token
         db_ = OAuthDB()
+        if request.args.get('v', default='html') == 'json':
+            return jsonify(token)
         db_.update_oauth(token)
         return render_template(
             'pages/authorization.html',
