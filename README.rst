@@ -4,7 +4,7 @@ API Explorer
 
 Sample application for the Palo Alto Networks Application Framework.
 
-* Documentation: https://apiexplorer.readthedocs.io
+* Documentation: https://api-explorer.readthedocs.io
 * Free software: ISC license
 
 -----
