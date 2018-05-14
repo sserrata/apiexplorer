@@ -39,6 +39,7 @@
                           </small>
                         </p>
                     </div>
+                    {% if activation %}
                     {% if not activation.activated and not has_tokens and not activation.client_id|length > 0 %}
                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#authorization">
                         <i class="fas fa-unlock-alt fa=lg"></i> Authorize
@@ -87,6 +88,7 @@
                     <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-danger" href="/delete_tokens" data-toggle="tooltip" data-placement="bottom" title="Delete Tokens/Activation">
                         <i class="fas fa-trash fa-lg"></i>
                     </a>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>

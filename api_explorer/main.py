@@ -45,8 +45,7 @@ def setup_logging(app):
     log = logging_.getLogger('requests_oauthlib')
     log.addHandler(logging_.StreamHandler(sys.stdout))
     log.setLevel(logging_.DEBUG)
-
-    if __name__ != '__main__':
+    if __name__ != 'api_explorer.main':
         gunicorn_logger = logging.getLogger('gunicorn.error')
         app.logger.handlers = gunicorn_logger.handlers
         app.logger.handlers = log.handlers
