@@ -269,6 +269,7 @@ def callback():
                         'pages/authorization.html',
                         has_tokens=db_.has_tokens,
                         oauth={},
+                        activation={},
                         alert="danger",
                         msg="{}: {}".format(error, error_description)
                     )
@@ -277,6 +278,7 @@ def callback():
                         'pages/authorization.html',
                         has_tokens=db_.has_tokens,
                         oauth={},
+                        activation={},
                         alert="danger",
                         msg="{}".format(_e)
                     )
