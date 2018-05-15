@@ -23,7 +23,7 @@ def setup_configuration(app):
     app.jinja_env.cache = {}
     app.config['SECRET_KEY'] = '8Q@U99a3wd8NGuY*nRTJ#WAk4r'
     app.config['PERMANENT_SESSION_LIFETIME'] = 1200
-    app.config['SECURITY_REGISTERABLE'] = os.environ['SECURITY_REGISTERABLE'] or False
+    app.config['SECURITY_REGISTERABLE'] = os.getenv('SECURITY_REGISTERABLE', None) or False
     app.config['SECURITY_TRACKABLE'] = True
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
     app.config['SECURITY_CHANGEABLE'] = True
