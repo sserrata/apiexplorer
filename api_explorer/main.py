@@ -1,13 +1,21 @@
-import sys, os
+import base64
+import os
+import sys
+
+try:
+    from urllib.parse import parse_qsl
+except ImportError:
+    from urlparse import parse_qsl
 
 import click
+import psutil
 from flask import Flask, logging, session, request
 import logging as logging_
 from . import __version__
 
 from api_explorer.constants import VENDOR, DB_DIR_PATH
 from api_explorer.extensions import db, security, user_datastore
-from api_explorer.oauth_db import OAuthDB
+from api_explorer.app_db import AppDB
 from api_explorer.views.it_views import it_views
 from api_explorer.views.static_views import static_views
 from api_explorer.views.views import views
@@ -37,7 +45,6 @@ def setup_configuration(app):
     app.jinja_env.trim_blocks = True
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['WTF_CSRF_ENABLED'] = False
-
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}/security.db'.format(DB_DIR_PATH)
 
 
@@ -65,7 +72,6 @@ def setup_flask_decorators(app, security_ctx):
         @app.context_processor
         def get_global_variables():
             def get_procs():
-                import psutil
                 master = ['nginx']
                 processes = []
                 for p in psutil.process_iter():
@@ -73,7 +79,7 @@ def setup_flask_decorators(app, security_ctx):
                         processes.append(p.name())
                 return processes
 
-            db_ = OAuthDB()
+            db_ = AppDB()
             client = db_.get_activation()
             settings_ = db_.get_settings()
             vendor = settings_.get('vendor', VENDOR)
@@ -99,11 +105,6 @@ def setup_flask_decorators(app, security_ctx):
                 x = request.args.to_dict()
                 params = x.get('params', None)
                 if params:
-                    import base64
-                    try:
-                        from urllib.parse import parse_qsl
-                    except ImportError:
-                        from urlparse import parse_qsl
                     params = base64.b64decode(params)
                     x = dict(parse_qsl(params))
                     parsed_params = {

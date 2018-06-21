@@ -2,35 +2,40 @@ import json
 import uuid
 import os
 
-from flask import render_template, request, redirect, session, jsonify, Blueprint, send_from_directory
-from flask_security import login_required, auth_required, current_user
-from pancloud.event import EventService
-from requests_oauthlib import OAuth2Session
+from flask import render_template, request, redirect, session, \
+    jsonify, Blueprint, send_from_directory
+from flask_security import login_required, auth_required, \
+    current_user, logout_user
+from pancloud import EventService, LoggingService, \
+    DirectorySyncService, Credentials
 
-from api_explorer.constants import APIGW_URL, AUTHORIZATION_BASE_URL, TOKEN_URL, REVOKE_TOKEN_URL, VENDOR
-from api_explorer.oauth_db import OAuthDB
+from api_explorer.constants import APIGW_URL, VENDOR, CSP
+from api_explorer.app_db import AppDB
 
 views = Blueprint('views', __name__)
+db = AppDB()
+c = Credentials()
 
 
 @views.route('/')
 @views.route('/index.html')
 @login_required
 def index():
+    activation = db.get_activation() or {}
+    if not session.get('instance_id', None) and not activation.get('instance_id', None):
+        logout_user()
+        return redirect(CSP)
     return render_template('pages/index.html')
 
 
 @views.route('/authorization')
 @login_required
 def authorization():
-    db_ = OAuthDB()
-    oauth = session.get('oauth_token', db_.get_oauth())
-    activation = db_.get_activation() or {}
+    activation = db.get_activation() or {}
     return render_template(
         'pages/authorization.html',
-        has_has_tokens=db_.has_tokens,
-        oauth=oauth,
         activation=activation,
+        credentials=c.get_credentials(),
         alert=None,
         msg=None
     )
@@ -39,145 +44,66 @@ def authorization():
 @views.route('/refresh_tokens')
 @auth_required('basic', 'session', 'token')
 def refresh_tokens():
-    db_ = OAuthDB()
-    oauth = session.get('oauth_token', db_.get_oauth())
-    client = db_.get_activation()
-    refresh_token = oauth['refresh_token']
-    idp_ = OAuth2Session()
-    activation = db_.get_activation()
-    settings_ = db_.get_settings()
+    activation = db.get_activation()
     try:
-        token = idp_.refresh_token(
-            client_id=client.get('client_id', ''),
-            refresh_token=refresh_token,
-            token_url=settings_.get('token_url', TOKEN_URL),
-            verify=False,
-            client_secret=client.get('client_secret', ''),
-            auth=None
-        )
-    except Exception as _e:
-        print(_e)
+        token = c.refresh(timeout=10)
+    except Exception as e:
+        print(e)
         return render_template(
             'pages/authorization.html',
-            has_tokens=db_.has_tokens,
-            oauth=oauth,
+            credentials=c.get_credentials(),
             activation=activation,
             alert="danger",
-            msg="{}".format(_e)
+            msg="{}".format(e)
         )
     else:
-        session['oauth_token'] = token
-        db_ = OAuthDB()
+        c.write_credentials()
+        session['oauth_token'] = {'access_token': token}
         if request.args.get('v', default='html') == 'json':
             return jsonify(token)
-        db_.update_oauth(token)
         return render_template(
             'pages/authorization.html',
-            has_tokens=db_.has_tokens,
-            oauth=oauth,
+            credentials=c.get_credentials(),
             activation=activation,
             alert="success",
             msg="SUCCESS"
         )
 
 
-@views.route('/revoke_access_token')
-@login_required
-def revoke_access_token():
-    import requests
-    db_ = OAuthDB()
-    oauth = session.get('oauth_token', db_.get_oauth())
-    activation = db_.get_activation()
-    settings_ = db_.get_settings()
-    body = {
-        'client_id': activation.get('client_id', ''),
-        'token': activation.get('access_token', ''),
-        'token_type_hint': 'access_token',
-        'client_secret': activation.get('client_secret', '')
-    }
-    with requests.Session() as s:
-        s.verify = False
-        s.auth = None
-        s.headers = '{Content-Type: application/x-www-form-urlencoded}'
-        try:
-            s.post(
-                url=settings_.get('revoke_token_url', REVOKE_TOKEN_URL),
-                data=body
-            )
-        except Exception as _e:
-            print(_e)
-            return render_template(
-                'pages/authorization.html',
-                has_tokens=db_.has_tokens,
-                oauth=oauth,
-                alert="danger",
-                msg="{}".format(_e)
-            )
-        else:
-            return render_template(
-                'pages/authorization.html',
-                has_tokens=db_.has_tokens,
-                oauth=oauth,
-                alert="success",
-                msg="SUCCESS"
-            )
-
-
 @views.route('/revoke_refresh_token')
 @login_required
 def revoke_refresh_token():
-    import requests
-    db_ = OAuthDB()
-    oauth = session.get('oauth_token', db_.get_oauth())
-    activation = db_.get_activation()
-    settings_ = db_.get_settings()
-    body = {
-        'client_id': activation.get('client_id', ''),
-        'token': activation.get('refresh_token', ''),
-        'token_type_hint': 'refresh_token',
-        'client_secret': activation.get('client_secret', '')
-    }
-    with requests.Session() as s:
-        s.verify = False
-        s.auth = None
-        s.headers = '{Content-Type: application/x-www-form-urlencoded}'
-        try:
-            s.post(
-                url=settings_.get('revoke_token_url', REVOKE_TOKEN_URL),
-                data=body
-            )
-        except Exception as _e:
-            print(_e)
-            return render_template(
-                'pages/authorization.html',
-                has_tokens=db_.has_tokens,
-                oauth=oauth,
-                alert="danger",
-                msg="{}".format(_e)
-            )
-        else:
-            return render_template(
-                'pages/authorization.html',
-                has_tokens=db_.has_tokens,
-                oauth=oauth,
-                alert="success",
-                msg="SUCCESS"
-            )
+    activation = db.get_activation() or {}
+    try:
+        c.revoke_refresh_token(timeout=10)
+    except Exception as _e:
+        print(_e)
+        return render_template(
+            'pages/authorization.html',
+            activation=activation,
+            credentials=c.get_credentials(),
+            alert="danger",
+            msg="{}".format(_e)
+        )
+    else:
+        return render_template(
+            'pages/authorization.html',
+            activation=activation,
+            credentials=c.get_credentials(),
+            alert="success",
+            msg="SUCCESS"
+        )
 
 
 @views.route('/delete_tokens')
 @login_required
 def delete_tokens():
-    db_ = OAuthDB()
-    db_.delete_tokens()
-    db_.delete_activation()
-    oauth = {}
-    activation = db_.get_activation() or {}
-    session['oauth_token'] = {}
+    c.remove_profile('default')
+    db.delete_activation()
+    activation = db.get_activation() or {}
     return render_template(
         'pages/authorization.html',
-        has_tokens=db_.has_tokens,
-        oauth=oauth,
+        credentials=c.get_credentials(),
         activation=activation,
         alert="success",
         msg="SUCCESS"
@@ -188,12 +114,16 @@ def delete_tokens():
 @login_required
 def idp():
     """Authorize user."""
-    db_ = OAuthDB()
-    activation = db_.get_activation()
-    settings_ = db_.get_settings()
+    activation = db.get_activation()
     form = request.form
-    client_id = form.get('client_id', None) or activation.get('client_id', '')
-    client_secret = form.get('client_secret', None) or activation.get('client_secret', '')
+    client_id = form.get('client_id', '')
+    client_secret = form.get('client_secret', '')
+
+    # update credentials
+    c.client_id_ = client_id
+    c.client_secret_ = client_secret
+    c.write_credentials()
+
     redirect_uri = form.get('redirect_uri', None) or activation.get('redirect_uri', '')
     instance_id = session.get('instance_id', None) or activation.get('instance_id', '')
     region = session.get('region', None) or activation.get('region', '')
@@ -209,66 +139,46 @@ def idp():
         'region': region,
         'scope': scope
     }
-    db_.update_activation(activation_fields)
-    activation = db_.get_activation()
-    _state = uuid.uuid4()
-    idp_ = OAuth2Session(
-        client_id=activation.get('client_id', ''),
-        scope=activation.get('scope', ''),
+    db.update_activation(activation_fields)
+    activation = db.get_activation()
+    state = str(uuid.uuid4())
+    authorization_url, state = c.get_authorization_url(
+        instance_id=activation.get('instance_id', ''),
+        region=activation.get('region', ''),
         redirect_uri=activation.get('redirect_uri', ''),
-        state=_state
+        state=str(state),
+        scope=scope
     )
-    idp_.auth = False
-    idp_.verify = False
-    authorization_url, state = idp_.authorization_url(
-        settings_.get('auth_base_url', AUTHORIZATION_BASE_URL),
-        instance_id=instance_id,
-        region=region
-    )
-    session['oauth_state'] = state
+    session['oauth_state'] = str(state)
     return redirect(authorization_url)
 
 
 @views.route("/auth-callback", methods=['POST', 'GET'])
 def callback():
     """Retrieve an access token."""
-    db_ = OAuthDB()
-    activation = db_.get_activation()
-    settings_ = db_.get_settings()
+    activation = db.get_activation()
     code = request.args.get('code', None)
     state = request.args.get('state', None)
     error = request.args.get('error', None)
     error_description = request.args.get('error_description', '')
     oauth_state = session.get('oauth_state', '')
     try:
-        if oauth_state == uuid.UUID(state):
-            idp_ = OAuth2Session(
-                client_id=activation.get('client_id', ''),
-                redirect_uri=activation.get('redirect_uri', ''),
-                state=state
-            )
-            idp_.auth = None
-            idp_.verify = False
+        if oauth_state == state:
             try:
-                token = idp_.fetch_token(
-                    token_url=settings_.get('token_url', TOKEN_URL),
-                    client_secret=activation.get('client_secret', ''),
-                    client_id=activation.get('client_id', ''),
+                c.fetch_tokens(
                     code=code,
-                    auth=False,
-                    verify=False
+                    redirect_uri=activation.get('redirect_uri', ''),
+                    client_id=activation.get('client_id', ''),
+                    client_secret=activation.get('client_secret', '')
                 )
-            except Exception as _e:
-                print('Exception occurred: {}'.format(_e))
+            except Exception as e:
+                print('Exception occurred: {}'.format(e))
                 print(error)
-                db_ = OAuthDB()
-                db_.delete_activation()
-                db_.delete_tokens()
+                db.delete_activation()
                 if error:
                     return render_template(
                         'pages/authorization.html',
-                        has_tokens=db_.has_tokens,
-                        oauth={},
+                        credentials=c.get_credentials(),
                         activation={},
                         alert="danger",
                         msg="{}: {}".format(error, error_description)
@@ -276,32 +186,28 @@ def callback():
                 else:
                     return render_template(
                         'pages/authorization.html',
-                        has_tokens=db_.has_tokens,
-                        oauth={},
+                        credentials=c.get_credentials(),
                         activation={},
                         alert="danger",
-                        msg="{}".format(_e)
+                        msg="{}".format(e)
                     )
             else:
-                session['oauth_token'] = token
-                db_ = OAuthDB()
-                activation = db_.get_activation()
+                activation = db.get_activation()
                 activation.update({'activated': True})
-                db_.update_activation(activation)
-                db_.update_oauth(token)
+                db.update_activation(activation)
                 return redirect('/authorization')
         return render_template(
             'pages/authorization.html',
-            has_tokens=db_.has_tokens,
-            oauth={},
+            activation=activation,
+            credentials=c.get_credentials(),
             alert="danger",
             msg="STATE MISMATCH: Possible CSRF detected!"
         )
     except Exception as e:
         return render_template(
             'pages/authorization.html',
-            has_tokens=db_.has_tokens,
-            oauth={},
+            activation=activation,
+            credentials=c.get_credentials(),
             alert="danger",
             msg="{}".format(e)
         )
@@ -310,49 +216,42 @@ def callback():
 @views.route('/queryexplorer', methods=['POST', 'GET'])
 @login_required
 def queryexplorer():
-    db_ = OAuthDB()
-    oauth = db_.get_oauth() or session.get('oauth_token', '')
-    settings_ = db_.get_settings()
-    try:
-        _token = oauth.get('access_token', '')
-    except AttributeError:
-        _token = ''
-    from pancloud.logging import LoggingService
+    settings_ = db.get_settings()
     import datetime
     import time
     try:
-        _from = request.form['from']
-        if len(_from) > 0 and _from != 'None':
-            _from = datetime.datetime.fromtimestamp(int(_from)).replace(
+        from_ = request.form['from']
+        if len(from_) > 0 and from_ != 'None':
+            from_ = datetime.datetime.fromtimestamp(int(from_)).replace(
                 microsecond=0).timestamp()
         else:
-            _from = (datetime.datetime.utcnow() - datetime.timedelta(
+            from_ = (datetime.datetime.utcnow() - datetime.timedelta(
                 minutes=15)).replace(microsecond=0).timestamp()
     except (KeyError, ValueError):
-        _from = None
+        from_ = None
 
     try:
-        _to = request.form['to']
-        if len(_to) > 0 and _to != 'None':
-            _to = datetime.datetime.fromtimestamp(int(_to)).replace(
+        to_ = request.form['to']
+        if len(to_) > 0 and to_ != 'None':
+            to_ = datetime.datetime.fromtimestamp(int(to_)).replace(
                 microsecond=0).timestamp()
         else:
-            _to = datetime.datetime.utcnow().replace(
+            to_ = datetime.datetime.utcnow().replace(
                 microsecond=0).timestamp()
     except (KeyError, ValueError):
-        _to = None
+        to_ = None
 
     try:
-        _query = request.form['query']
-        if len(_query) > 0:
-            _query = _query
+        query_ = request.form['query']
+        if len(query_) > 0:
+            query_ = query_
         else:
-            _query = 'select * from panw.traffic'
+            query_ = 'select * from panw.traffic'
     except (KeyError, ValueError):
-        _query = 'select * from panw.traffic limit 100'
+        query_ = 'select * from panw.traffic limit 100'
 
-    starttime = _from
-    endtime = _to
+    starttime = from_
+    endtime = to_
 
     response = []
     s = ""
@@ -361,12 +260,10 @@ def queryexplorer():
         ls = LoggingService(
             url=settings_.get('apigw_url', APIGW_URL),
             verify=False,
-            headers={'Authorization': 'Bearer {}'.format(_token)}
+            credentials=c
         )
-
-        # Prepare 'query' data
         data = {
-            "query": "{}".format(_query),
+            "query": "{}".format(query_),
             "startTime": int(starttime),
             "endTime": int(endtime),
             "maxWaitTime": 0
@@ -380,6 +277,7 @@ def queryexplorer():
                         "maxWaitTime": 10000
                     }
                     for page in ls.iter_poll(query_id, 0, params=data, timeout=15):
+                        print(page.text)
                         try:
                             print(
                                 "{}: queryId: {}, sequenceNo: {}, retrieving from {},"
@@ -476,31 +374,51 @@ def queryexplorer():
     )
 
 
+@views.route('/logwriter', methods=['POST', 'GET'])
+@login_required
+def logwriter():
+    vendor_id = request.form.get('vendor_id', None)
+    log_type = request.form.get('log_type', None)
+    payload = request.form.get('json', None)
+    settings_ = db.get_settings()
+    if vendor_id and log_type and payload:
+        ls = LoggingService(
+            url=settings_.get('apigw_url', APIGW_URL),
+            verify=False,
+            credentials=c
+        )
+        r = ls.write(
+            vendor_id=vendor_id,
+            log_type=log_type,
+            data=payload
+        )
+        results = r.text
+        status = r.status_code
+    else:
+        results = ''
+        status = 'n/a'
+    return render_template(
+        'pages/logwriter.html',
+        results=results,
+        status=status
+    )
+
+
 @views.route('/directoryexplorer', methods=['POST', 'GET'])
 @login_required
 def directoryexplorer():
     obj = request.form.get('object', None)
     endpoint = request.form.get('endpoint', '')
     domain = request.form.get('domain', '')
-
-    from pancloud.directorysync import DirectorySyncService
-
     results = {}
-    s = ""
     headers = []
-    db_ = OAuthDB()
-    oauth = db_.get_oauth() or session.get('oauth_token', '')
-    settings_ = db_.get_settings()
-    try:
-        _token = oauth.get('access_token', '')
-    except AttributeError:
-        _token = ''
+    settings_ = db.get_settings()
 
     # Create Logging Service instance
     ds = DirectorySyncService(
         url=settings_.get('apigw_url', APIGW_URL),
         verify=False,
-        headers={'Authorization': 'Bearer {}'.format(_token)}
+        credentials=c
     )
 
     dispatcher = {
@@ -514,7 +432,11 @@ def directoryexplorer():
     if m:
         try:
             if obj and endpoint == "query":
-                r = m(obj, timeout=15)
+                r = m(
+                    obj,
+                    data={'domain': domain},
+                    timeout=15
+                )
                 s = r.status_code
                 results = r.text
                 return render_template(
@@ -534,9 +456,7 @@ def directoryexplorer():
                     headers=headers, endpoint=endpoint, status=s
                 )
             else:
-                r = m(
-                    timeout=15
-                )
+                r = m(timeout=15)
                 s = r.status_code
                 results = r.text
                 return render_template(
@@ -547,7 +467,7 @@ def directoryexplorer():
             return render_template(
                 'pages/directoryexplorer.html',
                 results=e,
-                status=s,
+                status='n/a',
                 headers=headers,
                 endpoint=None
             )
@@ -555,7 +475,7 @@ def directoryexplorer():
         return render_template(
             'pages/directoryexplorer.html',
             results=results,
-            status=s,
+            status='n/a',
             headers=headers,
             endpoint=None
         )
@@ -567,17 +487,11 @@ def eventexplorer():
     channel_id = request.form.get('channel', 'EventFilter')
     endpoint = request.form.get('endpoint', '')
     payload = request.form.get('payload', None)
-    db_ = OAuthDB()
-    oauth = db_.get_oauth() or session.get('oauth_token', '')
-    settings_ = db_.get_settings()
-    try:
-        _token = oauth.get('access_token', '')
-    except AttributeError:
-        _token = ''
+    s = db.get_settings()
     es = EventService(
-        url=settings_.get('apigw_url', APIGW_URL),
+        url=s.get('apigw_url', APIGW_URL),
         verify=False,
-        headers={'Authorization': 'Bearer {}'.format(_token)}
+        credentials=c
     )
     dispatcher = {
         'get_filters': es.get_filters,
@@ -592,21 +506,22 @@ def eventexplorer():
             if payload:
                 r = m(channel_id, data=payload, timeout=15)
                 s = r.status_code
-                r = r.text
+                results = r.text or "SUCCESS: {}".format(endpoint)
             else:
                 r = m(channel_id, timeout=15)
                 s = r.status_code
-                r = r.text
+                results = r.text or "SUCCESS: {}".format(endpoint)
         except Exception as e:
-            r = "Message (error): {}".format(
-                e
+            results = "Message (error): {}".format(e)
+            s = "n/a"
+            return render_template(
+                'pages/eventexplorer.html', results=results, status=s
             )
-            s = ""
     else:
-        r = {}
-        s = ""
+        results = None
+        s = "n/a"
     return render_template(
-        'pages/eventexplorer.html', results=r, status=s
+        'pages/eventexplorer.html', results=results, status=s
     )
 
 
@@ -623,19 +538,12 @@ def updates():
 @views.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
-    auth_base_url = request.form.get('auth_base_url', '')
-    token_url = request.form.get('token_url', '')
-    revoke_token_url = request.form.get('revoke_token_url', '')
     apigw_url = request.form.get('apigw_url', '')
     vendor = request.form.get('vendor', '')
-    db_ = OAuthDB()
-    settings_ = db_.get_settings()
-    settings_['auth_base_url'] = auth_base_url or settings_.get('auth_base_url', AUTHORIZATION_BASE_URL)
-    settings_['token_url'] = token_url or settings_.get('token_url', TOKEN_URL)
-    settings_['revoke_token_url'] = revoke_token_url or settings_.get('revoke_token_url', REVOKE_TOKEN_URL)
+    settings_ = db.get_settings()
     settings_['apigw_url'] = apigw_url or settings_.get('apigw_url', APIGW_URL)
     settings_['vendor'] = vendor or settings_.get('vendor', VENDOR)
-    db_.update_settings(settings_)
+    db.update_settings(settings_)
     return render_template(
         'pages/settings.html',
         settings=settings_
@@ -645,7 +553,7 @@ def settings():
 @views.route('/developer', methods=['GET'])
 @login_required
 def developer():
-    db_ = OAuthDB()
+    db_ = AppDB()
     activation = db_.get_activation()
     key_ = activation.get('key', '')
     return render_template(
@@ -657,9 +565,13 @@ def developer():
 @views.route('/get_tokens', methods=['GET'], endpoint='get_tokens')
 @auth_required('basic', 'session', 'token')
 def get_tokens():
-    db_ = OAuthDB()
-    oauth = db_.get_oauth()
-    return jsonify(oauth)
+    return jsonify(
+        {
+            'access_token': c.access_token,
+            'refresh_token': c.refresh_token,
+            'client_id': c.client_id
+        }
+    )
 
 
 @views.route('/generate_api_key', methods=['POST'])
@@ -668,7 +580,7 @@ def generate_api_key():
     import requests
     email = request.form.get('email', current_user.email)
     password = request.form.get('password', '')
-    db_ = OAuthDB()
+    db_ = AppDB()
     activation = db_.get_activation()
     key_ = activation.get('key', '')
     try:
@@ -693,7 +605,7 @@ def generate_api_key():
             if "errors" not in response and len(response) > 0:
                 user = response.get('user', {})
                 key_ = user.get('authentication_token', '')
-                db_ = OAuthDB()
+                db_ = AppDB()
                 db_.update_api_key(key_)
                 msg = "success"
                 status = "success"

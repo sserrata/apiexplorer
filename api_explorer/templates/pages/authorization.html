@@ -46,9 +46,6 @@
                     <a class="btn btn-success disabled" href="/refresh_tokens">
                         <i class="fas fa-sync-alt"></i>
                     </a>
-                    <a class="btn btn-warning disabled" href="/revoke_access_token">
-                        <i class="fas fa-ban"></i>
-                    </a>
                     <a class="btn btn-warning disabled" href="/revoke_refresh_token">
                         <i class="fas fa-ban"></i>
                     </a>
@@ -62,9 +59,6 @@
                     <a class="btn btn-success disabled" href="/refresh_tokens">
                         <i class="fas fa-sync-alt"></i>
                     </a>
-                    <a class="btn btn-warning disabled" href="/revoke_access_token">
-                        <i class="fas fa-ban"></i>
-                    </a>
                     <a class="btn btn-warning disabled" href="/revoke_refresh_token">
                         <i class="fas fa-ban"></i>
                     </a>
@@ -77,9 +71,6 @@
                     </button>
                     <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-success" href="/refresh_tokens" data-toggle="tooltip" data-placement="bottom" title="Refresh Tokens">
                         <i class="fas fa-sync-alt"></i>
-                    </a>
-                    <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-warning" href="/revoke_access_token" data-toggle="tooltip" data-placement="bottom" title="Revoke Access Token">
-                        <i class="fas fa-ban"></i>
                     </a>
                     <a onclick="$('#oauth_body_div').empty(); $('#activation_div').empty(); $('#spinner').show(); $('#spinner2').show();" class="btn btn-warning" href="/revoke_refresh_token" data-toggle="tooltip" data-placement="bottom" title="Revoke Refresh Token">
                         <i class="fas fa-ban"></i>
@@ -123,8 +114,12 @@
                                             <td>{{ activation.instance_id }}</td>
                                         </tr>
                                         <tr>
-                                            <td>Client ID</td>
-                                            <td>{{ activation.client_id }}</td>
+                                            <td>Redirect_URI</td>
+                                            <td>{{ activation.redirect_uri }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Region</td>
+                                            <td>{{ activation.region }}</td>
                                         </tr>
                                         <tr>
                                             <td>Authorized</td>
@@ -168,37 +163,33 @@
                 <div class="col-lg-12">
                     <div class="box box-primary">
                       <div class="box-header with-border">
-                        <h3 class="box-title">Tokens</h3>
+                        <h3 class="box-title">Credentials</h3>
                       </div>
                       <div class="box-body">
                             <div class="table-responsive" id="oauth_body_div">
                                 <table class="table table-bordered table-striped" id="oauth">
                                     <tbody>
                                         <tr>
+                                            <td>Client-ID</td>
+                                            <td>{{ credentials.client_id }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Client-Secret</td>
+                                            <td>
+                                                {% if credentials.client_secret %}
+                                                <input id="client_secret" type="password" data-toggle="password" class="form-control" value="{{ credentials.client_secret }}" readonly>
+                                                {% else %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
                                             <td>Refresh-Token</td>
                                             <td>
-                                                {% if oauth.refresh_token %}
-                                                <input id="refresh_token" type="password" data-toggle="password" class="form-control" value="{{ oauth.refresh_token }}" readonly>
+                                                {% if credentials.refresh_token %}
+                                                <input id="refresh_token" type="password" data-toggle="password" class="form-control" value="{{ credentials.refresh_token }}" readonly>
                                                 {% else %}
                                                 {% endif %}
                                             </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Access-Token</td>
-                                            <td>
-                                                {% if oauth.access_token %}
-                                                <input id="access_token" type="password" data-toggle="password" class="form-control" value="{{ oauth.access_token }}" readonly>
-                                                {% else %}
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Token-Type</td>
-                                            <td>{{ oauth.token_type }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td>Expires-At</td>
-                                            <td id="dt"></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -301,14 +292,6 @@
     <script src="/js/select2.min.js"></script>
     <script src="/js/bootstrap-show-password.min.js"></script>
     <script src="/js/moment.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            if ("{{ oauth.expires_at }}".length > 0) {
-                var datetime = moment.unix("{{ oauth.expires_at }}").format('dddd, MMMM Do, YYYY h:mm:ss A');
-                document.getElementById('dt').innerHTML=datetime;
-            }
-        });
-    </script>
     <script>
         $("[name='registerable-toggle']").bootstrapSwitch();
     </script>

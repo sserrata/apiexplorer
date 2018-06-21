@@ -15,9 +15,11 @@ PyGithub = "*"
 psutil = "*"
 click = "*"
 "e1839a8" = {path = ".", editable = true}
-pancloud = "*"
 requests-oauthlib = "*"
-pyopenssl = "*"
+pyOpenSSL = "*"
+pancloud = "*"
+SQLAlchemy = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 pytest = "*"

@@ -6,50 +6,18 @@ import os
 from flask import Blueprint, render_template, request
 from flask_login import login_required
 
+import requests
+import zipfile
+import shutil
+import subprocess
+import pwd
+
 it_views = Blueprint('it_views', __name__)
-
-
-@it_views.route('/check_for_updates', methods=['GET'])
-@login_required
-def check_for_updates():
-    from github import Github
-    g = Github()
-    try:
-        o = g.get_organization('PaloAltoNetworks')
-        r = o.get_repo('apiexplorer')
-    except Exception as e:
-        return render_template(
-            'pages/updates.html',
-            msg="{}".format(e),
-            status="danger"
-        )
-    else:
-        try:
-            last_commit = r.get_commits()[0].sha
-        except (TypeError, KeyError):
-            last_commit = ''
-        with open('.git/logs/HEAD', 'rb') as logs:
-            last = logs.readlines()[-1].decode()
-            commit = last.split(' ')[1]
-        if commit == last_commit:
-            return render_template(
-                'pages/updates.html',
-                msg="Update available",
-                status="warning"
-            )
-        else:
-            return render_template(
-                'pages/updates.html',
-                msg="No Updates Available",
-                status="success"
-            )
 
 
 @it_views.route('/update', methods=['GET'])
 @login_required
 def update():
-    import requests
-    import zipfile
     old = '/opt/apiexplorer.old'
     current = '/opt/apiexplorer'
     master = '/opt/apiexplorer-master'
@@ -66,9 +34,6 @@ def update():
         )
     else:
         try:
-            import shutil
-            import subprocess
-            import pwd
             shutil.move(current, old)
             zip_ref = zipfile.ZipFile('/tmp/apiexplorer.zip', 'r')
             zip_ref.extractall('/opt')
@@ -109,7 +74,6 @@ def update():
 @it_views.route('/restart_process')
 @login_required
 def restart_process():
-    import subprocess
     try:
         if 'pname' in request.args:
             pname = request.args['pname']
