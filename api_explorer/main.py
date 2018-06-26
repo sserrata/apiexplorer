@@ -7,6 +7,7 @@ try:
 except ImportError:
     from urlparse import parse_qsl
 
+import codecs
 import click
 import psutil
 from flask import Flask, logging, session, request
@@ -106,9 +107,9 @@ def setup_flask_decorators(app, security_ctx):
                 params = x.get('params', None)
                 if params:
                     params = base64.b64decode(params)
-                    x = dict(parse_qsl(params))
+                    x = dict(parse_qsl(codecs.decode(params)))
                     parsed_params = {
-                        k.decode("utf-8"): v.decode("utf-8") for k, v in x.items()
+                        k: v for k, v in x.items()
                     }
                     instance_id = parsed_params.get('instance_id', '')
                     region = parsed_params.get('region', '')
