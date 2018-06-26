@@ -8,13 +8,26 @@ from flask_security import login_required, auth_required, \
     current_user, logout_user
 from pancloud import EventService, LoggingService, \
     DirectorySyncService, Credentials
+from pancloud.exceptions import PartialCredentialsError
 
 from api_explorer.constants import APIGW_URL, VENDOR, CSP
 from api_explorer.app_db import AppDB
 
 views = Blueprint('views', __name__)
 db = AppDB()
-c = Credentials()
+
+# Fall back to app.json if credentials.json doesn't exist
+try:
+    c = Credentials()
+    c.refresh()
+except PartialCredentialsError:
+    a = db.get_activation()
+    c = Credentials(
+        client_id=a.get('client_id', ''),
+        client_secret=a.get('client_secret', ''),
+        refresh_token=a.get('refresh_token', '')
+    )
+    c.write_credentials()
 
 
 @views.route('/')
