@@ -257,18 +257,18 @@ def queryexplorer():
     s = ""
     start = time.time()
     if starttime and endtime:
-        ls = LoggingService(
-            url=settings_.get('apigw_url', APIGW_URL),
-            verify=False,
-            credentials=c
-        )
-        data = {
-            "query": "{}".format(query_),
-            "startTime": int(starttime),
-            "endTime": int(endtime),
-            "maxWaitTime": 0
-        }
         try:
+            ls = LoggingService(
+                url=settings_.get('apigw_url', APIGW_URL),
+                verify=False,
+                credentials=c
+            )
+            data = {
+                "query": "{}".format(query_),
+                "startTime": int(starttime),
+                "endTime": int(endtime),
+                "maxWaitTime": 0
+            }
             q = ls.query(data, timeout=15)
             if 'error' not in q.text:
                 try:
@@ -314,7 +314,7 @@ def queryexplorer():
                 sd=starttime,
                 ed=endtime, et=time.time() - start,
                 headers=[], tabular=False,
-                json=None, status=s
+                json=None, status=500
             )
     et = time.time() - start
     headers = []
@@ -382,26 +382,37 @@ def logwriter():
     payload = request.form.get('json', None)
     settings_ = db.get_settings()
     if vendor_id and log_type and payload:
-        ls = LoggingService(
-            url=settings_.get('apigw_url', APIGW_URL),
-            verify=False,
-            credentials=c
-        )
-        r = ls.write(
-            vendor_id=vendor_id,
-            log_type=log_type,
-            data=payload
-        )
-        results = r.text
-        status = r.status_code
+        try:
+            ls = LoggingService(
+                url=settings_.get('apigw_url', APIGW_URL),
+                verify=False,
+                credentials=c
+            )
+            r = ls.write(
+                vendor_id=vendor_id,
+                log_type=log_type,
+                data=payload
+            )
+            results = r.text
+            status = r.status_code
+        except Exception as e:
+            return render_template(
+                'pages/logwriter.html',
+                results=str(e),
+                status=500
+            )
+        else:
+            return render_template(
+                'pages/logwriter.html',
+                results=results,
+                status=status
+            )
     else:
-        results = ''
-        status = 'n/a'
-    return render_template(
-        'pages/logwriter.html',
-        results=results,
-        status=status
-    )
+        return render_template(
+            'pages/logwriter.html',
+            results='',
+            status='n/a'
+        )
 
 
 @views.route('/directoryexplorer', methods=['POST', 'GET'])
@@ -411,26 +422,26 @@ def directoryexplorer():
     endpoint = request.form.get('endpoint', '')
     domain = request.form.get('domain', '')
     results = {}
+    s = ""
     headers = []
     settings_ = db.get_settings()
 
-    # Create Logging Service instance
-    ds = DirectorySyncService(
-        url=settings_.get('apigw_url', APIGW_URL),
-        verify=False,
-        credentials=c
-    )
+    try:
+        ds = DirectorySyncService(
+            url=settings_.get('apigw_url', APIGW_URL),
+            verify=False,
+            credentials=c
+        )
 
-    dispatcher = {
-        'attributes': ds.attributes,
-        'count': ds.count,
-        'domains': ds.domains,
-        'query': ds.query
-    }
+        dispatcher = {
+            'attributes': ds.attributes,
+            'count': ds.count,
+            'domains': ds.domains,
+            'query': ds.query
+        }
 
-    m = dispatcher.get(endpoint, None)
-    if m:
-        try:
+        m = dispatcher.get(endpoint, None)
+        if m:
             if obj and endpoint == "query":
                 r = m(
                     obj,
@@ -439,10 +450,6 @@ def directoryexplorer():
                 )
                 s = r.status_code
                 results = r.text
-                return render_template(
-                    'pages/directoryexplorer.html', results=results,
-                    headers=headers, endpoint=endpoint, status=s
-                )
             elif obj and endpoint == "count":
                 r = m(
                     object_class=obj,
@@ -451,33 +458,22 @@ def directoryexplorer():
                 )
                 s = r.status_code
                 results = r.text
-                return render_template(
-                    'pages/directoryexplorer.html', results=results,
-                    headers=headers, endpoint=endpoint, status=s
-                )
             else:
                 r = m(timeout=15)
                 s = r.status_code
                 results = r.text
-                return render_template(
-                    'pages/directoryexplorer.html', results=results,
-                    headers=headers, endpoint=endpoint, status=s
-                )
-        except Exception as e:
-            return render_template(
-                'pages/directoryexplorer.html',
-                results=e,
-                status='n/a',
-                headers=headers,
-                endpoint=None
-            )
-    else:
+    except Exception as e:
         return render_template(
             'pages/directoryexplorer.html',
-            results=results,
-            status='n/a',
+            results=e,
+            status=500,
             headers=headers,
             endpoint=None
+        )
+    else:
+        return render_template(
+            'pages/directoryexplorer.html', results=results,
+            headers=headers, endpoint=endpoint, status=s
         )
 
 
@@ -487,22 +483,24 @@ def eventexplorer():
     channel_id = request.form.get('channel', 'EventFilter')
     endpoint = request.form.get('endpoint', '')
     payload = request.form.get('payload', None)
-    s = db.get_settings()
-    es = EventService(
-        url=s.get('apigw_url', APIGW_URL),
-        verify=False,
-        credentials=c
-    )
-    dispatcher = {
-        'get_filters': es.get_filters,
-        'poll': es.poll,
-        'set_filters': es.set_filters,
-        'ack': es.ack,
-        'nack': es.nack
-    }
-    m = dispatcher.get(endpoint, None)
-    if m:
-        try:
+    settings_ = db.get_settings()
+    results = []
+    s = ""
+    try:
+        es = EventService(
+            url=settings_.get('apigw_url', APIGW_URL),
+            verify=False,
+            credentials=c
+        )
+        dispatcher = {
+            'get_filters': es.get_filters,
+            'poll': es.poll,
+            'set_filters': es.set_filters,
+            'ack': es.ack,
+            'nack': es.nack
+        }
+        m = dispatcher.get(endpoint, None)
+        if m:
             if payload:
                 r = m(channel_id, data=payload, timeout=15)
                 s = r.status_code
@@ -511,18 +509,16 @@ def eventexplorer():
                 r = m(channel_id, timeout=15)
                 s = r.status_code
                 results = r.text or "SUCCESS: {}".format(endpoint)
-        except Exception as e:
-            results = "Message (error): {}".format(e)
-            s = "n/a"
-            return render_template(
-                'pages/eventexplorer.html', results=results, status=s
-            )
+    except Exception as e:
+        results = str(e)
+        s = 500
+        return render_template(
+            'pages/eventexplorer.html', results=results, status=s
+        )
     else:
-        results = None
-        s = "n/a"
-    return render_template(
-        'pages/eventexplorer.html', results=results, status=s
-    )
+        return render_template(
+            'pages/eventexplorer.html', results=results, status=s
+        )
 
 
 @views.route('/updates', methods=['GET'])
