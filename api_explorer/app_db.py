@@ -27,6 +27,7 @@ class AppDB(object):
                     'redirect_uri': client.get('redirect_uri', ''),
                     'instance_id': client.get('instance_id', ''),
                     'region': client.get('region', ''),
+                    'refresh_token': client.get('refresh_token', ''),
                     'scope': client.get('scope', ''),
                     'activated': client.get('activated', False),
                 }
@@ -41,6 +42,7 @@ class AppDB(object):
                         'redirect_uri': client.get('redirect_uri', ''),
                         'instance_id': client.get('instance_id', ''),
                         'region': client.get('region', ''),
+                        'refresh_token': client.get('refresh_token', ''),
                         'scope': client.get('scope', ''),
                         'activated': client.get('activated', False),
                     }
