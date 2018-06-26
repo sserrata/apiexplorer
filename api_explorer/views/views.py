@@ -207,6 +207,7 @@ def callback():
             else:
                 activation = db.get_activation()
                 activation.update({'activated': True})
+                activation.update({'refresh_token': c.refresh_token})
                 db.update_activation(activation)
                 return redirect('/authorization')
         return render_template(
