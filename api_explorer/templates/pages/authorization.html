@@ -191,6 +191,15 @@
                                                 {% endif %}
                                             </td>
                                         </tr>
+                                        <tr>
+                                            <td>Access-Token</td>
+                                            <td>
+                                                {% if credentials.access_token %}
+                                                <input id="access_token" type="password" data-toggle="password" class="form-control" value="{{ credentials.access_token }}" readonly>
+                                                {% else %}
+                                                {% endif %}
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>

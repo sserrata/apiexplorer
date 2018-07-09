@@ -519,6 +519,10 @@ def eventexplorer():
                 r = m(channel_id, data=payload, timeout=15)
                 s = r.status_code
                 results = r.text or "SUCCESS: {}".format(endpoint)
+            elif not payload and endpoint == "poll":
+                r = m(channel_id, data={}, timeout=15)
+                s = r.status_code
+                results = r.text or "SUCCESS: {}".format(endpoint)
             else:
                 r = m(channel_id, timeout=15)
                 s = r.status_code
