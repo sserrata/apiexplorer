@@ -10,7 +10,7 @@ from pancloud import EventService, LoggingService, \
     DirectorySyncService, Credentials
 from pancloud.exceptions import PartialCredentialsError
 
-from api_explorer.constants import APIGW_URL, VENDOR, CSP
+from api_explorer.constants import APIGW_URL, VENDOR, CSP, AUTHORIZATION_BASE_URL, TOKEN_URL, REVOKE_TOKEN_URL
 from api_explorer.app_db import AppDB
 
 views = Blueprint('views', __name__)
@@ -18,14 +18,23 @@ db = AppDB()
 
 # Fall back to app.json if credentials.json doesn't exist
 try:
-    c = Credentials()
+    s = db.get_settings()
+    c = Credentials(
+        token_url=s.get('token_url', TOKEN_URL),
+        token_revoke_url=s.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=s.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     c.refresh()
 except PartialCredentialsError:
+    s = db.get_settings()
     a = db.get_activation()
     c = Credentials(
         client_id=a.get('client_id', ''),
         client_secret=a.get('client_secret', ''),
-        refresh_token=a.get('refresh_token', '')
+        refresh_token=a.get('refresh_token', ''),
+        token_url=s.get('token_url', TOKEN_URL),
+        token_revoke_url=s.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=s.get('auth_base_url', AUTHORIZATION_BASE_URL)
     )
     c.write_credentials()
 
@@ -58,25 +67,31 @@ def authorization():
 @auth_required('basic', 'session', 'token')
 def refresh_tokens():
     activation = db.get_activation()
+    s_ = db.get_settings()
+    c_ = Credentials(
+        token_url=s_.get('token_url', TOKEN_URL),
+        token_revoke_url=s_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=s_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     try:
-        token = c.refresh(timeout=10)
+        token = c_.refresh(timeout=10)
     except Exception as e:
         print(e)
         return render_template(
             'pages/authorization.html',
-            credentials=c.get_credentials(),
+            credentials=c_.get_credentials(),
             activation=activation,
             alert="danger",
             msg="{}".format(e)
         )
     else:
-        c.write_credentials()
+        c_.write_credentials()
         session['oauth_token'] = {'access_token': token}
         if request.args.get('v', default='html') == 'json':
             return jsonify(token)
         return render_template(
             'pages/authorization.html',
-            credentials=c.get_credentials(),
+            credentials=c_.get_credentials(),
             activation=activation,
             alert="success",
             msg="SUCCESS"
@@ -87,14 +102,20 @@ def refresh_tokens():
 @login_required
 def revoke_refresh_token():
     activation = db.get_activation() or {}
+    s_ = db.get_settings()
+    c_ = Credentials(
+        token_url=s_.get('token_url', TOKEN_URL),
+        token_revoke_url=s_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=s_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     try:
-        c.revoke_refresh_token(timeout=10)
+        c_.revoke_refresh_token(timeout=10)
     except Exception as _e:
         print(_e)
         return render_template(
             'pages/authorization.html',
             activation=activation,
-            credentials=c.get_credentials(),
+            credentials=c_.get_credentials(),
             alert="danger",
             msg="{}".format(_e)
         )
@@ -102,7 +123,7 @@ def revoke_refresh_token():
         return render_template(
             'pages/authorization.html',
             activation=activation,
-            credentials=c.get_credentials(),
+            credentials=c_.get_credentials(),
             alert="success",
             msg="SUCCESS"
         )
@@ -132,10 +153,17 @@ def idp():
     client_id = form.get('client_id', '')
     client_secret = form.get('client_secret', '')
 
+    s_ = db.get_settings()
+    c_ = Credentials(
+        token_url=s_.get('token_url', TOKEN_URL),
+        token_revoke_url=s_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=s_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
+
     # update credentials
-    c.client_id_ = client_id
-    c.client_secret_ = client_secret
-    c.write_credentials()
+    c_.client_id_ = client_id
+    c_.client_secret_ = client_secret
+    c_.write_credentials()
 
     redirect_uri = form.get('redirect_uri', None) or activation.get('redirect_uri', '')
     instance_id = session.get('instance_id', None) or activation.get('instance_id', '')
@@ -155,7 +183,7 @@ def idp():
     db.update_activation(activation_fields)
     activation = db.get_activation()
     state = str(uuid.uuid4())
-    authorization_url, state = c.get_authorization_url(
+    authorization_url, state = c_.get_authorization_url(
         instance_id=activation.get('instance_id', ''),
         region=activation.get('region', ''),
         redirect_uri=activation.get('redirect_uri', ''),
@@ -175,10 +203,17 @@ def callback():
     error = request.args.get('error', None)
     error_description = request.args.get('error_description', '')
     oauth_state = session.get('oauth_state', '')
+
+    s_ = db.get_settings()
+    c_ = Credentials(
+        token_url=s_.get('token_url', TOKEN_URL),
+        token_revoke_url=s_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=s_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     try:
         if oauth_state == state:
             try:
-                c.fetch_tokens(
+                c_.fetch_tokens(
                     code=code,
                     redirect_uri=activation.get('redirect_uri', ''),
                     client_id=activation.get('client_id', ''),
@@ -191,7 +226,7 @@ def callback():
                 if error:
                     return render_template(
                         'pages/authorization.html',
-                        credentials=c.get_credentials(),
+                        credentials=c_.get_credentials(),
                         activation={},
                         alert="danger",
                         msg="{}: {}".format(error, error_description)
@@ -199,7 +234,7 @@ def callback():
                 else:
                     return render_template(
                         'pages/authorization.html',
-                        credentials=c.get_credentials(),
+                        credentials=c_.get_credentials(),
                         activation={},
                         alert="danger",
                         msg="{}".format(e)
@@ -207,13 +242,13 @@ def callback():
             else:
                 activation = db.get_activation()
                 activation.update({'activated': True})
-                activation.update({'refresh_token': c.refresh_token})
+                activation.update({'refresh_token': c_.refresh_token})
                 db.update_activation(activation)
                 return redirect('/authorization')
         return render_template(
             'pages/authorization.html',
             activation=activation,
-            credentials=c.get_credentials(),
+            credentials=c_.get_credentials(),
             alert="danger",
             msg="STATE MISMATCH: Possible CSRF detected!"
         )
@@ -221,7 +256,7 @@ def callback():
         return render_template(
             'pages/authorization.html',
             activation=activation,
-            credentials=c.get_credentials(),
+            credentials=c_.get_credentials(),
             alert="danger",
             msg="{}".format(e)
         )
@@ -231,6 +266,11 @@ def callback():
 @login_required
 def queryexplorer():
     settings_ = db.get_settings()
+    c_ = Credentials(
+        token_url=settings_.get('token_url', TOKEN_URL),
+        token_revoke_url=settings_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=settings_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     import datetime
     import time
     try:
@@ -275,7 +315,7 @@ def queryexplorer():
             ls = LoggingService(
                 url=settings_.get('apigw_url', APIGW_URL),
                 verify=False,
-                credentials=c
+                credentials=c_
             )
             data = {
                 "query": "{}".format(query_),
@@ -395,12 +435,17 @@ def logwriter():
     log_type = request.form.get('log_type', None)
     payload = request.form.get('json', None)
     settings_ = db.get_settings()
+    c_ = Credentials(
+        token_url=settings_.get('token_url', TOKEN_URL),
+        token_revoke_url=settings_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=settings_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     if vendor_id and log_type and payload:
         try:
             ls = LoggingService(
                 url=settings_.get('apigw_url', APIGW_URL),
                 verify=False,
-                credentials=c
+                credentials=c_
             )
             r = ls.write(
                 vendor_id=vendor_id,
@@ -439,12 +484,16 @@ def directoryexplorer():
     s = ""
     headers = []
     settings_ = db.get_settings()
-
+    c_ = Credentials(
+        token_url=settings_.get('token_url', TOKEN_URL),
+        token_revoke_url=settings_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=settings_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     try:
         ds = DirectorySyncService(
             url=settings_.get('apigw_url', APIGW_URL),
             verify=False,
-            credentials=c
+            credentials=c_
         )
 
         dispatcher = {
@@ -498,13 +547,18 @@ def eventexplorer():
     endpoint = request.form.get('endpoint', '')
     payload = request.form.get('payload', None)
     settings_ = db.get_settings()
+    c_ = Credentials(
+        token_url=settings_.get('token_url', TOKEN_URL),
+        token_revoke_url=settings_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=settings_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     results = []
     s = ""
     try:
         es = EventService(
             url=settings_.get('apigw_url', APIGW_URL),
             verify=False,
-            credentials=c
+            credentials=c_
         )
         dispatcher = {
             'get_filters': es.get_filters,
@@ -552,9 +606,18 @@ def updates():
 @views.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
+    auth_base_url = request.form.get('auth_base_url', '')
+    token_url = request.form.get('token_url', '')
+    revoke_token_url = request.form.get('revoke_token_url', '')
     apigw_url = request.form.get('apigw_url', '')
     vendor = request.form.get('vendor', '')
     settings_ = db.get_settings()
+    settings_['auth_base_url'] = auth_base_url or settings_.get(
+        'auth_base_url', AUTHORIZATION_BASE_URL)
+    settings_['token_url'] = token_url or settings_.get('token_url',
+                                                        TOKEN_URL)
+    settings_['revoke_token_url'] = revoke_token_url or settings_.get(
+        'revoke_token_url', REVOKE_TOKEN_URL)
     settings_['apigw_url'] = apigw_url or settings_.get('apigw_url', APIGW_URL)
     settings_['vendor'] = vendor or settings_.get('vendor', VENDOR)
     db.update_settings(settings_)

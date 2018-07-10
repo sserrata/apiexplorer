@@ -79,7 +79,10 @@ class AppDB(object):
                 {
                     '_id': 1,
                     'apigw_url': settings_.get('apigw_url', ''),
-                    'vendor': settings_.get('vendor', '')
+                    'vendor': settings_.get('vendor', ''),
+                    'auth_base_url': settings_.get('auth_base_url', ''),
+                    'token_url': settings_.get('token_url', ''),
+                    'revoke_token_url': settings_.get('revoke_token_url', '')
                 }
             )
         except DuplicateKeyError:
@@ -88,7 +91,10 @@ class AppDB(object):
                 {
                     '$set': {
                         'apigw_url': settings_.get('apigw_url', ''),
-                        'vendor': settings_.get('vendor', '')
+                        'vendor': settings_.get('vendor', ''),
+                        'auth_base_url': settings_.get('auth_base_url', ''),
+                        'token_url': settings_.get('token_url', ''),
+                        'revoke_token_url': settings_.get('revoke_token_url', '')
                     }
                 }
             )
