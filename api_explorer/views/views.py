@@ -54,10 +54,16 @@ def index():
 @login_required
 def authorization():
     activation = db.get_activation() or {}
+    s_ = db.get_settings()
+    c_ = Credentials(
+        token_url=s_.get('token_url', TOKEN_URL),
+        token_revoke_url=s_.get('revoke_token_url', REVOKE_TOKEN_URL),
+        auth_base_url=s_.get('auth_base_url', AUTHORIZATION_BASE_URL)
+    )
     return render_template(
         'pages/authorization.html',
         activation=activation,
-        credentials=c.get_credentials(),
+        credentials=c_.get_credentials(),
         alert=None,
         msg=None
     )
