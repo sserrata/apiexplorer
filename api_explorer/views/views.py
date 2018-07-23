@@ -514,7 +514,7 @@ def directoryexplorer():
             if obj and endpoint == "query":
                 r = m(
                     obj,
-                    data={'domain': domain},
+                    json={'domain': domain},
                     timeout=15
                 )
                 s = r.status_code
@@ -576,11 +576,11 @@ def eventexplorer():
         m = dispatcher.get(endpoint, None)
         if m:
             if payload:
-                r = m(channel_id, data=payload, timeout=15)
+                r = m(channel_id, json=payload, timeout=15)
                 s = r.status_code
                 results = r.text or "SUCCESS: {}".format(endpoint)
             elif not payload and endpoint == "poll":
-                r = m(channel_id, data={}, timeout=15)
+                r = m(channel_id, json={}, timeout=15)
                 s = r.status_code
                 results = r.text or "SUCCESS: {}".format(endpoint)
             else:
