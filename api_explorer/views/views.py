@@ -456,7 +456,7 @@ def logwriter():
             r = ls.write(
                 vendor_id=vendor_id,
                 log_type=log_type,
-                data=payload
+                json=payload
             )
             results = r.text
             status = r.status_code
