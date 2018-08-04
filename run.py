@@ -54,6 +54,12 @@ if __name__ == '__main__':
     parser.add_argument(
         "-p", "--production", action='store_true', default=False, help="Production mode"
     )
+    parser.add_argument(
+        "-P", '--port', action='store', help="Listeing Port", type=int
+    )
+    parser.add_argument(
+        "-S", '--skip-debug-ssl', action='store_false', default=True, help="Do not use SSL in Debug Mode"
+    )
     args = parser.parse_args()
 
     app = create_app()
@@ -77,13 +83,25 @@ if __name__ == '__main__':
         else:
             context = 'adhoc'
         os.chdir(os.path.dirname(os.path.realpath(__file__)))
+        if args.port:
+            _port = args.port
+        else:
+            _port = 443
+        if args.ssl:
+            _ssl = context
+        else:
+            _ssl = None
         app.run(
-            host='0.0.0.0', port=443, debug=args.debug, ssl_context=context,
+            host='0.0.0.0', port=_port, debug=args.debug, ssl_context=_ssl,
             threaded=True
         )
     elif args.production:
+        if args.port:
+            _bind = '0.0.0.0:{}'.format(args.port)
+        else:
+            _bind = '0.0.0.0:5000'
         options = {
-            'bind': '0.0.0.0:5000',
+            'bind': _bind,
             'workers': '%s' % max_workers(),
             'timeout': '300',
             'loglevel': 'info',
