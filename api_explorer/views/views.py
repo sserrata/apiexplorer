@@ -13,6 +13,9 @@ from pancloud.exceptions import PartialCredentialsError
 from api_explorer.constants import APIGW_URL, VENDOR, CSP, AUTHORIZATION_BASE_URL, TOKEN_URL, REVOKE_TOKEN_URL
 from api_explorer.app_db import AppDB
 
+# Configuration env check to redirect to CSP
+skip_redir_to_csp = os.getenv('APIEXPLORER_SKIP_REDIRECT_TO_CSP', None) or False
+
 views = Blueprint('views', __name__)
 db = AppDB()
 
@@ -44,7 +47,7 @@ except PartialCredentialsError:
 @login_required
 def index():
     activation = db.get_activation() or {}
-    if not session.get('instance_id', None) and not activation.get('instance_id', None):
+    if not skip_redir_to_csp and not session.get('instance_id', None) and not activation.get('instance_id', None):
         logout_user()
         return redirect(CSP)
     return render_template('pages/index.html')
