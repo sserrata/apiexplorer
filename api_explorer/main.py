@@ -20,6 +20,7 @@ from api_explorer.app_db import AppDB
 from api_explorer.views.it_views import it_views
 from api_explorer.views.static_views import static_views
 from api_explorer.views.views import views
+from pancloud import Credentials
 
 
 def register_blueprints(app):
@@ -86,6 +87,9 @@ def setup_flask_decorators(app, security_ctx):
             vendor = settings_.get('vendor', VENDOR)
             try:
                 if client.get('activated', False):
+                    activated = True
+                elif Credentials().refresh_token and \
+                    Credentials().client_id and Credentials().client_secret:
                     activated = True
                 else:
                     activated = False
