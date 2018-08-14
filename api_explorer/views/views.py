@@ -46,10 +46,10 @@ except PartialCredentialsError:
 @views.route('/index.html')
 @login_required
 def index():
-    activation = db.get_activation() or {}
-    if not skip_redir_to_csp and not session.get('instance_id', None) and not activation.get('instance_id', None):
-        logout_user()
-        return redirect(CSP)
+    # activation = db.get_activation() or {}
+    # if not skip_redir_to_csp and not session.get('instance_id', None) and not activation.get('instance_id', None):
+    #     logout_user()
+    #     return redirect(CSP)
     return render_template('pages/index.html')
 
 
