@@ -579,6 +579,7 @@ def eventexplorer():
         m = dispatcher.get(endpoint, None)
         if m:
             if payload:
+                payload = json.loads(payload)
                 r = m(channel_id, json=payload, timeout=45)
                 s = r.status_code
                 results = r.text or "SUCCESS: {}".format(endpoint)
